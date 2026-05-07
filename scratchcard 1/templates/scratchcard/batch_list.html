@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Scratch Card Batches{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="mb-0">
+                <i class="bi bi-collection"></i> Scratch Card Batches
+            </h1>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'scratchcard:create_batch' %}" class="btn btn-primary">
+                <i class="bi bi-plus"></i> New Batch
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for batch in batches %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ batch.name }}</h5>
+                    <p class="card-text text-muted">{{ batch.description|truncatewords:15 }}</p>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Total Cards</small>
+                            <strong class="fs-5">{{ batch.quantity }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Value/Card</small>
+                            <strong class="fs-5">₦{{ batch.value_per_card }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="badge bg-primary">{{ batch.get_purpose_display }}</span>
+                    </div>
+
+                    <a href="{% url 'scratchcard:batch_detail' batch.id %}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="bi bi-eye"></i> View Details
+                    </a>
+                </div>
+                <div class="card-footer bg-light text-muted small">
+                    Created: {{ batch.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No batches created yet. 
+                <a href="{% url 'scratchcard:create_batch' %}">Create the first batch</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

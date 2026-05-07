@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Redemption Receipt{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-check-circle"></i> Redemption Successful!
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-check-circle" style="font-size: 3rem; color: #198754;"></i>
+                    </div>
+
+                    <div class="alert alert-success">
+                        <strong>₦{{ redemption.amount_redeemed|floatformat:2 }}</strong> has been added to your account
+                    </div>
+
+                    <table class="table">
+                        <tr>
+                            <th>Reference Number:</th>
+                            <td><code>{{ redemption.reference_number }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Card Code:</th>
+                            <td><code>{{ redemption.card.card_code }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Amount:</th>
+                            <td>₦{{ redemption.amount_redeemed|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Date:</th>
+                            <td>{{ redemption.redemption_date|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Purpose:</th>
+                            <td>{{ redemption.card.batch.get_purpose_display }}</td>
+                        </tr>
+                    </table>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'core:dashboard' %}" class="btn btn-primary">
+                            <i class="bi bi-house"></i> Back to Dashboard
+                        </a>
+                        <a href="{% url 'scratchcard:redeem' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-plus"></i> Redeem Another Card
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

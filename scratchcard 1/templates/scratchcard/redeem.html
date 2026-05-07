@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Redeem Scratch Card{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-gift"></i> Redeem Scratch Card
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Card Code *</strong></label>
+                            <input type="text" name="card_code" class="form-control form-control-lg" 
+                                   placeholder="Enter card code" required autofocus>
+                            <small class="text-muted">Found on your scratch card</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label"><strong>PIN *</strong></label>
+                            <input type="password" name="pin" class="form-control form-control-lg" 
+                                   placeholder="Enter 8-digit PIN" required>
+                            <small class="text-muted">Scratch the card to reveal PIN</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Redeem Card
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="alert alert-info mt-4">
+                <h6 class="alert-heading">
+                    <i class="bi bi-info-circle"></i> How to redeem:
+                </h6>
+                <ol class="mb-0">
+                    <li>Scratch the gray area on your card to reveal the PIN</li>
+                    <li>Enter the Card Code and PIN above</li>
+                    <li>Click "Redeem Card"</li>
+                    <li>Your credit will be applied to your account</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
