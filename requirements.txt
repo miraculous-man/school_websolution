@@ -1,0 +1,12 @@
+crispy-bootstrap5==2025.6
+Django==5.2.9
+django-crispy-forms==2.5
+matplotlib==3.10.8
+pandas==2.3.3
+plotly==6.5.0
+psycopg2-binary==2.9.11
+qrcode==8.2
+reportlab==4.4.7
+seaborn==0.13.2
+whitenoise==6.11.0
+pywebpush==2.0.0
