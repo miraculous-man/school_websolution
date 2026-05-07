@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Theme Settings - School Management System{% endblock %}
+{% block page_title %}Theme Settings{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Customize Your Theme</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <h6 class="mb-3">Theme Mode</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="theme_mode" id="light" value="light" {% if profile.theme_mode == 'light' %}checked{% endif %}>
+                            <label class="form-check-label" for="light">Light Mode</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="theme_mode" id="dark" value="dark" {% if profile.theme_mode == 'dark' %}checked{% endif %}>
+                            <label class="form-check-label" for="dark">Dark Mode</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="theme_mode" id="auto" value="auto" {% if profile.theme_mode == 'auto' %}checked{% endif %}>
+                            <label class="form-check-label" for="auto">Auto (System Default)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="theme_image" class="form-label">Upload Theme Image</label>
+                        <input type="file" class="form-control" id="theme_image" name="theme_image" accept="image/*">
+                        <small class="text-muted">Upload an image to auto-extract colors for your theme</small>
+                        {% if profile.theme_image %}
+                        <div class="mt-2">
+                            <img src="{{ profile.theme_image.url }}" alt="Theme" style="max-width: 200px; height: auto; border-radius: 0.5rem;">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="library_bg" class="form-label">Library Dashboard Background</label>
+                        <input type="file" class="form-control" id="library_bg" name="library_bg" accept="image/*">
+                        <small class="text-muted">Set a custom background for the Library dashboard</small>
+                        {% if profile.library_bg %}
+                        <div class="mt-2">
+                            <img src="{{ profile.library_bg.url }}" alt="Library BG" style="max-width: 200px; height: auto; border-radius: 0.5rem;">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="finance_bg" class="form-label">Finance Dashboard Background</label>
+                        <input type="file" class="form-control" id="finance_bg" name="finance_bg" accept="image/*">
+                        <small class="text-muted">Set a custom background for the Finance dashboard</small>
+                        {% if profile.finance_bg %}
+                        <div class="mt-2">
+                            <img src="{{ profile.finance_bg.url }}" alt="Finance BG" style="max-width: 200px; height: auto; border-radius: 0.5rem;">
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="primary_color" class="form-label">Primary Color</label>
+                            <input type="color" class="form-control form-control-color" id="primary_color" name="primary_color" value="{{ profile.primary_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="secondary_color" class="form-label">Secondary Color</label>
+                            <input type="color" class="form-control form-control-color" id="secondary_color" name="secondary_color" value="{{ profile.secondary_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="accent_color" class="form-label">Accent Color</label>
+                            <input type="color" class="form-control form-control-color" id="accent_color" name="accent_color" value="{{ profile.accent_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="navbar_color" class="form-label">Navbar Color</label>
+                            <input type="color" class="form-control form-control-color" id="navbar_color" name="navbar_color" value="{{ profile.navbar_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sidebar_color" class="form-label">Sidebar Color</label>
+                            <input type="color" class="form-control form-control-color" id="sidebar_color" name="sidebar_color" value="{{ profile.sidebar_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="background_color" class="form-label">Background Color</label>
+                            <input type="color" class="form-control form-control-color" id="background_color" name="background_color" value="{{ profile.background_color }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="text_color" class="form-label">Text Color</label>
+                            <input type="color" class="form-control form-control-color" id="text_color" name="text_color" value="{{ profile.text_color }}">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Theme Settings</button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">Back to Profile</a>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Preview</h5>
+            </div>
+            <div class="card-body" style="background-color: {{ profile.background_color }}; color: {{ profile.text_color }};">
+                <div class="p-3" style="background-color: {{ profile.navbar_color }}; border-radius: 0.5rem; margin-bottom: 1rem; color: white;">
+                    <strong>Navbar Preview</strong>
+                </div>
+                <div class="p-3" style="background-color: {{ profile.sidebar_color }}; border-radius: 0.5rem; margin-bottom: 1rem; color: white;">
+                    <strong>Sidebar Preview</strong>
+                </div>
+                <button class="btn w-100" style="background-color: {{ profile.primary_color }}; color: white; border: none;">Primary Button</button>
+                <button class="btn btn-outline w-100 mt-2" style="border-color: {{ profile.secondary_color }}; color: {{ profile.secondary_color }};">Secondary Button</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

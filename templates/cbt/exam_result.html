@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .result-fade-in {
+        animation: resultFade 1s ease-out forwards;
+        opacity: 0;
+    }
+    @keyframes resultFade {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    .score-pop {
+        animation: scorePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+        transform: scale(0);
+    }
+    @keyframes scorePop {
+        to { transform: scale(1); }
+    }
+</style>
+<div class="container mt-4 result-fade-in">
+    <div class="card mb-4 shadow-lg border-0">
+        <div class="card-header bg-primary text-white py-3">
+            <h4 class="mb-0">Exam Result: {{ attempt.exam.title }}</h4>
+        </div>
+        <div class="card-body text-center py-5">
+            <div class="score-pop">
+                <h1 class="display-1 fw-bold text-primary mb-0">{{ attempt.score }}/{{ attempt.exam.total_marks }}</h1>
+                <p class="h4 text-muted mb-4">Final Score</p>
+            </div>
+            <p class="lead">Correct Answers: {{ attempt.correct_answers }} / {{ attempt.total_questions }}</p>
+            {% if attempt.score >= attempt.exam.passing_marks %}
+            <div class="alert alert-success">Congratulations! You Passed.</div>
+            {% else %}
+            <div class="alert alert-danger">You did not reach the passing marks.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if attempt.exam.show_result %}
+    <h3>Review Answers</h3>
+    {% for answer in answers %}
+    <div class="card mb-3 {% if answer.is_correct %}border-success{% else %}border-danger{% endif %}">
+        <div class="card-body">
+            <p><strong>Q: {{ answer.question.question_text }}</strong></p>
+            <p>Your Answer: <span class="{% if answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ answer.selected_answer }}</span></p>
+            {% if not answer.is_correct %}
+            <p>Correct Answer: <span class="text-success">{{ answer.question.correct_answer }}</span></p>
+            {% endif %}
+            {% if answer.question.explanation %}
+            <div class="mt-2 small text-muted"><strong>Explanation:</strong> {{ answer.question.explanation }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="text-center mt-4">
+        <a href="{% url 'cbt:dashboard' %}" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+</div>
+{% endblock %}

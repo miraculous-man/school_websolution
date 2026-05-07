@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Question - School Management System{% endblock %}
+{% block page_title %}Add Question{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Question Details</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Subject *</label>
+                    <select name="subject" class="form-select" required>
+                        <option value="">Select...</option>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.id }}">{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Class Level *</label>
+                    <select name="class_level" class="form-select" required>
+                        <option value="">Select...</option>
+                        {% for level in class_levels %}
+                        <option value="{{ level.id }}">{{ level.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Question Type</label>
+                    <select name="question_type" class="form-select">
+                        <option value="multiple_choice">Multiple Choice</option>
+                        <option value="true_false">True/False</option>
+                        <option value="short_answer">Short Answer</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Difficulty</label>
+                    <select name="difficulty" class="form-select">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Question *</label>
+                <textarea name="question_text" class="form-control" rows="3" required placeholder="Enter the question..."></textarea>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label">Option A</label>
+                    <input type="text" name="option_a" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Option B</label>
+                    <input type="text" name="option_b" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Option C</label>
+                    <input type="text" name="option_c" class="form-control">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Option D</label>
+                    <input type="text" name="option_d" class="form-control">
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">Correct Answer *</label>
+                    <input type="text" name="correct_answer" class="form-control" required placeholder="e.g., A, B, C, D, True, False, or the answer text">
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label">Explanation (Optional)</label>
+                <textarea name="explanation" class="form-control" rows="2" placeholder="Explain why this is the correct answer..."></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Add Question
+                </button>
+                <button type="submit" name="add_another" value="1" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Add & Create Another
+                </button>
+                <a href="{% url 'cbt:question_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Exams - School Management System{% endblock %}
+{% block page_title %}Exams{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>All Exams</span>
+        <a href="{% url 'cbt:exam_add' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Create Exam
+        </a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Subject</th>
+                        <th>Class</th>
+                        <th>Questions</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams %}
+                    <tr>
+                        <td><a href="{% url 'cbt:exam_detail' exam.pk %}">{{ exam.title }}</a></td>
+                        <td>{{ exam.subject.name }}</td>
+                        <td>{{ exam.class_level.name }}</td>
+                        <td>{{ exam.questions.count }}</td>
+                        <td>{{ exam.duration_minutes }} min</td>
+                        <td>
+                            <span class="badge bg-{% if exam.status == 'published' %}success{% elif exam.status == 'draft' %}secondary{% else %}danger{% endif %}">
+                                {{ exam.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                {% if exam.status == 'published' %}
+                                <a href="{% url 'cbt:take_exam' exam.pk %}" class="btn btn-success" title="Take Exam"><i class="bi bi-play-fill"></i> Take Exam</a>
+                                {% endif %}
+                                <a href="{% url 'cbt:exam_detail' exam.pk %}" class="btn btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                                {% if exam.status == 'draft' %}
+                                <a href="{% url 'cbt:exam_publish' exam.pk %}" class="btn btn-outline-success" title="Publish"><i class="bi bi-check-circle"></i></a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">No exams found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

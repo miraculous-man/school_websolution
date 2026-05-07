@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Student Attendance - School Management System{% endblock %}
+{% block page_title %}Mark Student Attendance{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">Select Class & Date</div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <label class="form-label">Class</label>
+                <select name="class" class="form-select" onchange="this.form.submit()">
+                    <option value="">Select Class...</option>
+                    {% for classroom in classrooms %}
+                    <option value="{{ classroom.id }}" {% if selected_class == classroom.id|stringformat:"s" %}selected{% endif %}>{{ classroom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Load</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if students %}
+<div class="card">
+    <div class="card-header">Mark Attendance</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="attendance_date" value="{{ selected_date }}">
+            <input type="hidden" name="class_id" value="{{ selected_class }}">
+            
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Admission No</th>
+                            <th>Status</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.admission_number }}</td>
+                            <td>
+                                <select name="status_{{ student.id }}" class="form-select form-select-sm" style="width: 120px;">
+                                    <option value="present" {% if attendance_records|dictsort:student.id == 'present' %}selected{% endif %}>Present</option>
+                                    <option value="absent" {% if attendance_records|dictsort:student.id == 'absent' %}selected{% endif %}>Absent</option>
+                                    <option value="late" {% if attendance_records|dictsort:student.id == 'late' %}selected{% endif %}>Late</option>
+                                    <option value="excused" {% if attendance_records|dictsort:student.id == 'excused' %}selected{% endif %}>Excused</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" name="remarks_{{ student.id }}" class="form-control form-control-sm" placeholder="Optional">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Save Attendance
+            </button>
+        </form>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

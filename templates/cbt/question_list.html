@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Question Bank - School Management System{% endblock %}
+{% block page_title %}Question Bank{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Questions</span>
+        <a href="{% url 'cbt:question_add' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add Question
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Search questions..." value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="subject" class="form-select">
+                    <option value="">All Subjects</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if subject_filter == subject.id|stringformat:"s" %}selected{% endif %}>{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="class" class="form-select">
+                    <option value="">All Classes</option>
+                    {% for level in class_levels %}
+                    <option value="{{ level.id }}" {% if class_filter == level.id|stringformat:"s" %}selected{% endif %}>{{ level.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Subject</th>
+                        <th>Class</th>
+                        <th>Type</th>
+                        <th>Difficulty</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for question in questions %}
+                    <tr>
+                        <td>{{ question.question_text|truncatechars:80 }}</td>
+                        <td>{{ question.subject.name }}</td>
+                        <td>{{ question.class_level.name }}</td>
+                        <td><span class="badge bg-info">{{ question.get_question_type_display }}</span></td>
+                        <td>
+                            <span class="badge bg-{% if question.difficulty == 'easy' %}success{% elif question.difficulty == 'medium' %}warning{% else %}danger{% endif %}">
+                                {{ question.get_difficulty_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted py-4">No questions found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

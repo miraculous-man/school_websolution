@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ exam.title }}</h2>
+        <div>
+            {% if exam.status == 'draft' %}
+            <a href="{% url 'cbt:exam_publish' exam.pk %}" class="btn btn-success">Publish Exam</a>
+            {% endif %}
+            <a href="{% url 'cbt:exam_list' %}" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">Exam Details</div>
+                <div class="card-body">
+                    <p><strong>Subject:</strong> {{ exam.subject.name }}</p>
+                    <p><strong>Class:</strong> {{ exam.class_level.name }}</p>
+                    <p><strong>Duration:</strong> {{ exam.duration_minutes }} mins</p>
+                    <p><strong>Questions:</strong> {{ exam.questions.count }}</p>
+                    <p><strong>Passing Marks:</strong> {{ exam.passing_marks }}/{{ exam.total_marks }}</p>
+                    <p><strong>Status:</strong> <span class="badge bg-{% if exam.status == 'published' %}success{% else %}warning{% endif %}">{{ exam.status }}</span></p>
+                    
+                    {% if exam.status == 'published' %}
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'cbt:take_exam' exam.pk %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-play-fill me-2"></i>Start Exam Now
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-info-circle me-2"></i>This exam is not yet published.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">Student Attempts</div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Date</th>
+                                <th>Score</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for attempt in attempts %}
+                            <tr>
+                                <td class="align-middle">
+                                    <div class="d-flex align-items-center">
+                                        {% if attempt.student.photo %}
+                                        <img src="{{ attempt.student.photo.url }}" class="avatar me-2" alt="{{ attempt.student.full_name }}">
+                                        {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ attempt.student.full_name }}&background=4f46e5&color=fff" class="avatar me-2" alt="{{ attempt.student.full_name }}">
+                                        {% endif %}
+                                        <span>{{ attempt.student.full_name }}</span>
+                                    </div>
+                                </td>
+                                <td class="align-middle">{{ attempt.started_at|date:"M d, Y" }}</td>
+                                <td class="align-middle">{{ attempt.score }}/{{ exam.total_marks }}</td>
+                                <td>
+                                    {% if attempt.score >= exam.passing_marks %}
+                                    <span class="text-success">Passed</span>
+                                    {% else %}
+                                    <span class="text-danger">Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'cbt:exam_result' attempt.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No attempts yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Attendance - School Management System{% endblock %}
+{% block page_title %}Attendance Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Students Present</p>
+                    <h3>{{ present_students }}</h3>
+                </div>
+                <i class="bi bi-check-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card red">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Students Absent</p>
+                    <h3>{{ absent_students }}</h3>
+                </div>
+                <i class="bi bi-x-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card orange">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Students Late</p>
+                    <h3>{{ late_students }}</h3>
+                </div>
+                <i class="bi bi-clock fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card blue">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Teachers Present</p>
+                    <h3>{{ present_teachers }}</h3>
+                </div>
+                <i class="bi bi-person-badge fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'attendance:mark_student' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-people me-2"></i>Mark Student Attendance
+                    </a>
+                    <a href="{% url 'attendance:mark_teacher' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-person-badge me-2"></i>Mark Teacher Attendance
+                    </a>
+                    <a href="{% url 'attendance:report' %}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Today's Summary - {{ today }}</div>
+            <div class="card-body">
+                <h6>Student Attendance</h6>
+                <div class="progress mb-3" style="height: 25px;">
+                    {% with total=present_students|add:absent_students|add:late_students %}
+                    {% if total > 0 %}
+                    <div class="progress-bar bg-success" style="width: {% widthratio present_students total 100 %}%">Present</div>
+                    <div class="progress-bar bg-danger" style="width: {% widthratio absent_students total 100 %}%">Absent</div>
+                    <div class="progress-bar bg-warning" style="width: {% widthratio late_students total 100 %}%">Late</div>
+                    {% else %}
+                    <div class="progress-bar bg-secondary w-100">No data</div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <h6>Teacher Attendance</h6>
+                <div class="progress" style="height: 25px;">
+                    {% with total=present_teachers|add:absent_teachers %}
+                    {% if total > 0 %}
+                    <div class="progress-bar bg-success" style="width: {% widthratio present_teachers total 100 %}%">Present</div>
+                    <div class="progress-bar bg-danger" style="width: {% widthratio absent_teachers total 100 %}%">Absent</div>
+                    {% else %}
+                    <div class="progress-bar bg-secondary w-100">No data</div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

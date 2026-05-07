@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}CBT - School Management System{% endblock %}
+{% block page_title %}CBT Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Total Questions</p>
+                    <h3>{{ total_questions }}</h3>
+                </div>
+                <i class="bi bi-question-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Total Exams</p>
+                    <h3>{{ total_exams }}</h3>
+                </div>
+                <i class="bi bi-file-text fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card blue">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Published Exams</p>
+                    <h3>{{ published_exams }}</h3>
+                </div>
+                <i class="bi bi-check2-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card orange">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Total Attempts</p>
+                    <h3>{{ total_attempts }}</h3>
+                </div>
+                <i class="bi bi-pencil-square fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-3">
+                    <a href="{% url 'cbt:question_add' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-plus-circle me-2"></i>Add Questions
+                    </a>
+                    <a href="{% url 'cbt:exam_add' %}" class="btn btn-success btn-lg">
+                        <i class="bi bi-file-plus me-2"></i>Create Exam
+                    </a>
+                    <a href="{% url 'cbt:practice' %}" class="btn btn-info btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>Practice Mode
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Recent Exams</span>
+                <a href="{% url 'cbt:exam_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Subject</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in recent_exams %}
+                            <tr>
+                                <td><a href="{% url 'cbt:exam_detail' exam.pk %}">{{ exam.title }}</a></td>
+                                <td>{{ exam.subject.name }}</td>
+                                <td>
+                                    <span class="badge bg-{% if exam.status == 'published' %}success{% elif exam.status == 'draft' %}secondary{% else %}danger{% endif %}">
+                                        {{ exam.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No exams yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Question Bank by Subject</span>
+                <a href="{% url 'cbt:question_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for subject in subjects %}
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body text-center">
+                                <h5>{{ subject.name }}</h5>
+                                <a href="{% url 'cbt:question_list' %}?subject={{ subject.id }}" class="btn btn-sm btn-outline-primary">View Questions</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center text-muted">No subjects created yet</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

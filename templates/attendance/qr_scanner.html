@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Code Attendance Scanner{% endblock %}
+{% block page_title %}QR Code Attendance Scanner{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-qr-code-scan me-2"></i>Scan Student ID Card</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div id="reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                </div>
+                
+                <div id="scan-result" class="d-none">
+                    <div class="alert" id="result-alert">
+                        <div class="d-flex align-items-center">
+                            <div id="student-photo" class="me-3"></div>
+                            <div>
+                                <h5 id="student-name" class="mb-1"></h5>
+                                <p class="mb-0" id="student-info"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="scan-history" class="mt-4">
+                    <h6>Recent Scans</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+    const html5QrCode = new Html5Qrcode("reader");
+    const scanHistory = [];
+    
+    function onScanSuccess(decodedText, decodedResult) {
+        html5QrCode.pause();
+        
+        fetch('{% url "attendance:scan_qr" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ qr_code: decodedText })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const resultDiv = document.getElementById('scan-result');
+            const alertDiv = document.getElementById('result-alert');
+            const studentName = document.getElementById('student-name');
+            const studentInfo = document.getElementById('student-info');
+            const studentPhoto = document.getElementById('student-photo');
+            
+            resultDiv.classList.remove('d-none');
+            
+            if (data.status === 'success') {
+                alertDiv.className = 'alert alert-success';
+                studentName.textContent = data.student.name;
+                studentInfo.textContent = `${data.student.admission_number} | ${data.student.class}`;
+                
+                if (data.student.photo) {
+                    studentPhoto.innerHTML = `<img src="${data.student.photo}" class="rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">`;
+                } else {
+                    studentPhoto.innerHTML = `<div class="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 60px; height: 60px;"><i class="bi bi-person" style="font-size: 2rem;"></i></div>`;
+                }
+                
+                if (data.already_marked) {
+                    alertDiv.className = 'alert alert-info';
+                    studentInfo.textContent += ' (Already marked today)';
+                }
+                
+                scanHistory.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    name: data.student.name,
+                    status: data.already_marked ? 'Already Marked' : 'Marked Present'
+                });
+            } else {
+                alertDiv.className = 'alert alert-danger';
+                studentName.textContent = 'Error';
+                studentInfo.textContent = data.message;
+                studentPhoto.innerHTML = `<div class="bg-danger rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 60px; height: 60px;"><i class="bi bi-x-circle" style="font-size: 2rem;"></i></div>`;
+                
+                scanHistory.unshift({
+                    time: new Date().toLocaleTimeString(),
+                    name: decodedText,
+                    status: 'Error'
+                });
+            }
+            
+            updateHistoryTable();
+            
+            setTimeout(() => {
+                html5QrCode.resume();
+            }, 2000);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            setTimeout(() => {
+                html5QrCode.resume();
+            }, 1000);
+        });
+    }
+    
+    function updateHistoryTable() {
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = scanHistory.slice(0, 10).map(item => `
+            <tr>
+                <td>${item.time}</td>
+                <td>${item.name}</td>
+                <td><span class="badge ${item.status === 'Error' ? 'bg-danger' : 'bg-success'}">${item.status}</span></td>
+            </tr>
+        `).join('');
+    }
+    
+    html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        (errorMessage) => {}
+    ).catch((err) => {
+        document.getElementById('reader').innerHTML = `
+            <div class="alert alert-warning">
+                <h5>Camera Access Required</h5>
+                <p>Please allow camera access to scan QR codes, or enter the code manually below.</p>
+                <input type="text" id="manual-code" class="form-control mb-2" placeholder="Enter QR code data">
+                <button onclick="manualScan()" class="btn btn-primary">Submit</button>
+            </div>
+        `;
+    });
+    
+    function manualScan() {
+        const code = document.getElementById('manual-code').value;
+        if (code) {
+            onScanSuccess(code, null);
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Mark Teacher Attendance - School Management System{% endblock %}
+{% block page_title %}Mark Teacher Attendance{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">Select Date</div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Date</label>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}" onchange="this.form.submit()">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Load</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Mark Attendance</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="attendance_date" value="{{ selected_date }}">
+            
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Teacher</th>
+                            <th>Staff ID</th>
+                            <th>Status</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ teacher.full_name }}</td>
+                            <td>{{ teacher.staff_id }}</td>
+                            <td>
+                                <select name="status_{{ teacher.id }}" class="form-select form-select-sm" style="width: 120px;">
+                                    <option value="present">Present</option>
+                                    <option value="absent">Absent</option>
+                                    <option value="late">Late</option>
+                                    <option value="on_leave">On Leave</option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="time" name="time_in_{{ teacher.id }}" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <input type="time" name="time_out_{{ teacher.id }}" class="form-control form-control-sm">
+                            </td>
+                            <td>
+                                <input type="text" name="remarks_{{ teacher.id }}" class="form-control form-control-sm" placeholder="Optional">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>Save Attendance
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

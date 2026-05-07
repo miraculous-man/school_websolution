@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Exam</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Title</label>
+            <input type="text" name="title" class="form-control" value="{{ exam.title }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Subject</label>
+            <select name="subject" class="form-select" required>
+                {% for subject in subjects %}
+                <option value="{{ subject.id }}" {% if exam.subject.id == subject.id %}selected{% endif %}>{{ subject.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Class Level</label>
+            <select name="class_level" class="form-select" required>
+                {% for level in class_levels %}
+                <option value="{{ level.id }}" {% if exam.class_level.id == level.id %}selected{% endif %}>{{ level.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Duration (Minutes)</label>
+                <input type="number" name="duration_minutes" class="form-control" value="{{ exam.duration_minutes|default:60 }}" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Total Marks</label>
+                <input type="number" name="total_marks" class="form-control" value="{{ exam.total_marks|default:100 }}" required>
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Passing Marks</label>
+                <input type="number" name="passing_marks" class="form-control" value="{{ exam.passing_marks|default:40 }}" required>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Instructions</label>
+            <textarea name="instructions" class="form-control" rows="3">{{ exam.instructions }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Select Questions</label>
+            <select name="questions" class="form-select" multiple style="height: 200px;">
+                {% for q in questions %}
+                <option value="{{ q.id }}" {% if q in exam.questions.all %}selected{% endif %}>{{ q.question_text|truncatechars:100 }}</option>
+                {% endfor %}
+            </select>
+            <small class="text-muted">Hold Ctrl (or Cmd) to select multiple questions.</small>
+        </div>
+        <div class="mb-3 form-check">
+            <input type="checkbox" name="shuffle_questions" class="form-check-input" id="shuffle" {% if exam.shuffle_questions %}checked{% endif %}>
+            <label class="form-check-label" for="shuffle">Shuffle Questions</label>
+        </div>
+        <div class="mb-3 form-check">
+            <input type="checkbox" name="show_result" class="form-check-input" id="showResult" {% if exam.show_result %}checked{% endif %}>
+            <label class="form-check-label" for="showResult">Show Result Immediately</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Exam</button>
+        <a href="{% url 'cbt:exam_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
