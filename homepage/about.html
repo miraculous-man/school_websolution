@@ -1,0 +1,91 @@
+{% extends 'homepage/base_public.html' %}
+
+{% block title %}About Us - {{ settings.school_name|default:"Our School" }}{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 50vh;">
+    <div class="container text-center hero-content">
+        <h1>About Us</h1>
+        <p>Learn more about our history, mission, and values</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        {% if about %}
+        <div class="row align-items-center mb-5">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                {% if about.image %}
+                <img src="{{ about.image.url }}" alt="About Us" class="img-fluid rounded-3 shadow">
+                {% else %}
+                <div class="bg-primary rounded-3 d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="bi bi-building text-white" style="font-size: 8rem;"></i>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6">
+                <h2 class="section-title">{{ about.title }}</h2>
+                <p>{{ about.content }}</p>
+            </div>
+        </div>
+        
+        <div class="row g-4 mb-5">
+            {% if about.mission %}
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-bullseye"></i>
+                    </div>
+                    <h4>Our Mission</h4>
+                    <p>{{ about.mission }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if about.vision %}
+            <div class="col-lg-6">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="bi bi-eye"></i>
+                    </div>
+                    <h4>Our Vision</h4>
+                    <p>{{ about.vision }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <h3>Welcome to Our School</h3>
+            <p class="lead">We are committed to providing quality education and shaping future leaders.</p>
+        </div>
+        {% endif %}
+        
+        {% if staff %}
+        <h2 class="section-title text-center mt-5">Meet Our Team</h2>
+        <p class="section-subtitle text-center">Dedicated professionals committed to excellence</p>
+        <div class="row g-4">
+            {% for member in staff %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card text-center h-100">
+                    {% if member.photo %}
+                    <img src="{{ member.photo.url }}" class="card-img-top" alt="{{ member.name }}" style="height: 250px; object-fit: cover;">
+                    {% else %}
+                    <img src="https://ui-avatars.com/api/?name={{ member.name }}&size=250&background=2563eb&color=fff" class="card-img-top" alt="{{ member.name }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ member.name }}</h5>
+                        <p class="text-muted">{{ member.position }}</p>
+                        {% if member.email %}
+                        <a href="mailto:{{ member.email }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-envelope"></i> Contact
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if classroom %}Edit{% else %}Add{% endif %} Class</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Class Name</label>
+            <input type="text" name="name" class="form-control" value="{{ classroom.name }}" required placeholder="e.g. Science A">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Level</label>
+            <select name="class_level" class="form-select" required>
+                {% for level in levels %}
+                <option value="{{ level.id }}" {% if classroom.class_level.id == level.id %}selected{% endif %}>{{ level.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Capacity</label>
+            <input type="number" name="capacity" class="form-control" value="{{ classroom.capacity|default:30 }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Class</button>
+        <a href="{% url 'core:class_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

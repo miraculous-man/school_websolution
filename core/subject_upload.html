@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Subject Material{% endblock %}
+{% block page_title %}Upload Material{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Upload Subject Resources</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Material Type</label>
+                        <select name="upload_type" class="form-select" id="uploadType" onchange="toggleInputs()">
+                            <option value="document">Document (PDF, Word, etc.)</option>
+                            <option value="video">YouTube Video Link</option>
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Subject</label>
+                            <select name="subject" class="form-select" required>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.id }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Target Class Level</label>
+                            <select name="class_level" class="form-select" required>
+                                {% for level in levels %}
+                                <option value="{{ level.id }}">{{ level.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Introduction to Algebra" required>
+                    </div>
+
+                    <div id="fileInput" class="mb-3">
+                        <label class="form-label">File Resource</label>
+                        <input type="file" name="file" class="form-control">
+                    </div>
+
+                    <div id="videoInput" class="mb-3 d-none">
+                        <label class="form-label">YouTube URL</label>
+                        <input type="url" name="youtube_url" class="form-control" placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'core:subject_list' %}" class="btn btn-light">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-upload me-2"></i> Upload Resource
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleInputs() {
+    const type = document.getElementById('uploadType').value;
+    const fileDiv = document.getElementById('fileInput');
+    const videoDiv = document.getElementById('videoInput');
+    
+    if (type === 'video') {
+        fileDiv.classList.add('d-none');
+        videoDiv.classList.remove('d-none');
+    } else {
+        fileDiv.classList.remove('d-none');
+        videoDiv.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends 'homepage/base_v2.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .feature-box { text-align: center; padding: 40px 20px; transition: 0.3s; border-bottom: 4px solid transparent; background: #fff; margin-top: -50px; position: relative; z-index: 10; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .feature-box:hover { background: #f9f9f9; border-bottom-color: var(--ss-secondary); transform: translateY(-10px); }
+    .feature-box img { width: 60px; margin-bottom: 20px; }
+    .section-header { text-align: center; margin-bottom: 50px; }
+    .section-header h2 { font-weight: 700; text-transform: uppercase; position: relative; padding-bottom: 15px; font-size: 36px; }
+    .section-header h2::after { content: ''; width: 60px; height: 3px; background: var(--ss-secondary); position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+    .course-card { border: none; box-shadow: 0 0 15px rgba(0,0,0,0.05); overflow: hidden; }
+    .course-card .badge { position: absolute; top: 15px; right: 15px; background: var(--ss-secondary); z-index: 5; }
+    .course-card img { transition: 0.5s; }
+    .course-card:hover img { transform: scale(1.1); }
+</style>
+
+<div id="ssCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% if slides %}
+            {% for slide in slides %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}" style="background-image: url('{{ slide.image.url }}');">
+                    <div class="carousel-caption animate__animated animate__fadeInLeft">
+                        <h2 class="animate__animated animate__fadeInUp animate__delay-1s">{{ slide.title }}</h2>
+                        <p class="animate__animated animate__fadeInUp animate__delay-2s">{{ slide.description }}</p>
+                        <a href="#" class="btn btn-warning btn-lg animate__animated animate__fadeInUp animate__delay-3s px-4">Learn More</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="carousel-item active" style="background-image: url('https://demo.smart-school.in/uploads/gallery/media/v-4banner1.jpg');">
+                <div class="carousel-caption animate__animated animate__fadeInLeft">
+                    <h2 class="animate__animated animate__fadeInUp animate__delay-1s">Excellence In Education</h2>
+                    <p class="animate__animated animate__fadeInUp animate__delay-2s">Providing a world-class education for every child in our community.</p>
+                    <a href="#" class="btn btn-warning btn-lg animate__animated animate__fadeInUp animate__delay-3s px-4">Apply Now</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#ssCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#ssCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+</div>
+
+<div class="ticker-news">
+    <div class="container d-flex align-items-center">
+        <span class="badge bg-warning me-3 p-2">LATEST NEWS</span>
+        <marquee>
+            {% for post in blog_posts %}
+                <span class="me-5"><a href="#" class="text-dark text-decoration-none">• {{ post.title }}</a></span>
+            {% empty %}
+                Welcome to {{ settings.school_name }} - Admission Open for 2026 Session!
+            {% endfor %}
+        </marquee>
+    </div>
+</div>
+
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-box animate__animated animate__fadeInUp">
+                    <img src="https://demo.smart-school.in/uploads/gallery/media/scholarship-icon.png" alt="">
+                    <h4>Scholarship Facility</h4>
+                    <p>Supporting talented students with financial aid and merit-based grants.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box animate__animated animate__fadeInUp animate__delay-1s">
+                    <img src="https://demo.smart-school.in/uploads/gallery/media/book-icon.png" alt="">
+                    <h4>Books & Library</h4>
+                    <p>A vast collection of knowledge and resources at your fingertips.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box animate__animated animate__fadeInUp animate__delay-2s">
+                    <img src="https://demo.smart-school.in/uploads/gallery/media/teacher-icon.png" alt="">
+                    <h4>Certified Teachers</h4>
+                    <p>Learn from highly qualified educators dedicated to student success.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ID Card Verification Section -->
+        <div class="row mt-5 justify-content-center">
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm text-center p-4">
+                    <div class="card-body">
+                        <i class="bi bi-qr-code-scan display-4 text-warning mb-3"></i>
+                        <h3>Verify Student ID</h3>
+                        <p class="text-muted">Scan or enter student admission number to verify identity.</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="verifyInput" class="form-control" placeholder="Admission Number (e.g. STU123)">
+                            <button class="btn btn-warning" type="button" id="verifyBtn">Verify Now</button>
+                            <button class="btn btn-outline-secondary" type="button" id="scanBtn"><i class="bi bi-camera me-1"></i>Scan QR</button>
+                        </div>
+                        <div id="scannerContainer" style="display: none;" class="mb-3">
+                            <div id="reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                            <button class="btn btn-sm btn-danger mt-2" id="stopScanBtn">Stop Scanning</button>
+                        </div>
+                        <div id="verifyResult" class="mt-3" style="display: none;">
+                            <!-- Result will be injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Student Verification Modal -->
+<div class="modal fade" id="studentDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4 d-flex justify-content-end">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="position-relative d-inline-block mb-4">
+                    <div class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success border border-4 border-white p-2" id="modalStatusBadge" style="width: 20px; height: 20px;"></div>
+                    <img id="modalPhoto" src="" class="rounded-circle border border-4 border-white shadow-sm" style="width: 150px; height: 150px; object-fit: cover; background: #eee;">
+                </div>
+                
+                <h3 id="modalName" class="fw-bold mb-1"></h3>
+                <p id="modalId" class="text-warning fw-medium mb-4"></p>
+                
+                <div class="row g-3 text-start bg-light rounded-4 p-3 mb-4">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Class</small>
+                        <span id="modalClass" class="fw-semibold"></span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Gender</small>
+                        <span id="modalGender" class="fw-semibold"></span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Admission Date</small>
+                        <span id="modalAdmissionDate" class="fw-semibold"></span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Birth Date</small>
+                        <span id="modalBirthDate" class="fw-semibold"></span>
+                    </div>
+                    <div class="col-12 border-top pt-2">
+                        <small class="text-muted d-block">Contact</small>
+                        <span id="modalContact" class="fw-semibold"></span>
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <div class="alert alert-success border-0 mb-0 py-2">
+                        <i class="bi bi-check-circle-fill me-2"></i>Verified Student
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const verifyBtn = document.getElementById('verifyBtn');
+    const verifyInput = document.getElementById('verifyInput');
+    const verifyResult = document.getElementById('verifyResult');
+    const scanBtn = document.getElementById('scanBtn');
+    const stopScanBtn = document.getElementById('stopScanBtn');
+    const scannerContainer = document.getElementById('scannerContainer');
+    const studentModal = new bootstrap.Modal(document.getElementById('studentDetailModal'));
+    
+    let html5QrcodeScanner = null;
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Stop scanning after success
+        stopScanning();
+        verifyInput.value = decodedText;
+        // Trigger verification
+        verifyBtn.click();
+    }
+
+    function onScanFailure(error) {
+        // handle scan failure, usually better to ignore and keep scanning
+    }
+
+    function stopScanning() {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().then((ignore) => {
+                scannerContainer.style.display = 'none';
+                html5QrcodeScanner = null;
+            }).catch((err) => {
+                console.error("Unable to stop scanning.", err);
+            });
+        } else {
+            scannerContainer.style.display = 'none';
+        }
+    }
+
+    scanBtn.addEventListener('click', function() {
+        scannerContainer.style.display = 'block';
+        if (!html5QrcodeScanner) {
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                config,
+                onScanSuccess,
+                onScanFailure
+            ).catch((err) => {
+                alert("Camera access denied or error: " + err);
+                scannerContainer.style.display = 'none';
+            });
+        }
+    });
+
+    stopScanBtn.addEventListener('click', stopScanning);
+
+    verifyBtn.addEventListener('click', function() {
+        const admissionNumber = verifyInput.value.trim();
+        if (!admissionNumber) {
+            alert('Please enter an admission number');
+            return;
+        }
+
+        verifyResult.innerHTML = '<div class="spinner-border text-warning" role="status"><span class="visually-hidden">Loading...</span></div>';
+        verifyResult.style.display = 'block';
+
+        fetch(`/api/verify-student/?admission_number=${admissionNumber}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    verifyResult.style.display = 'none';
+                    
+                    // Populate modal
+                    document.getElementById('modalPhoto').src = data.photo_url;
+                    document.getElementById('modalName').textContent = data.full_name;
+                    document.getElementById('modalId').textContent = 'Admission ID: ' + data.admission_number;
+                    document.getElementById('modalClass').textContent = data.current_class;
+                    document.getElementById('modalGender').textContent = data.gender;
+                    document.getElementById('modalAdmissionDate').textContent = data.admission_date;
+                    document.getElementById('modalBirthDate').textContent = data.date_of_birth;
+                    document.getElementById('modalContact').textContent = data.phone + ' | ' + data.email;
+                    
+                    const badge = document.getElementById('modalStatusBadge');
+                    if (data.status.toLowerCase() === 'active') {
+                        badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success border border-4 border-white p-2';
+                    } else {
+                        badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-4 border-white p-2';
+                    }
+                    
+                    studentModal.show();
+                    verifyInput.value = ''; // Clear input after success
+                } else {
+                    verifyResult.innerHTML = `<div class="alert alert-danger mb-0">${data.error}</div>`;
+                }
+            })
+            .catch(error => {
+                verifyResult.innerHTML = `<div class="alert alert-danger mb-0">Error connecting to server</div>`;
+            });
+    });
+});
+</script>
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="section-header">
+            <h2>Our Main Courses</h2>
+        </div>
+        <div class="course-slider">
+            {% for i in "12345" %}
+            <div class="px-2">
+                <div class="card course-card">
+                    <span class="badge">Science</span>
+                    <img src="https://demo.smart-school.in/uploads/gallery/media/courseimg2.jpg" class="card-img-top" alt="">
+                    <div class="card-body">
+                        <h5 class="card-title">Electrical Engineering</h5>
+                        <p class="card-text text-muted">All over the world, human beings create an immense volume of data...</p>
+                        <a href="#" class="btn btn-outline-dark btn-sm">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-dark text-white text-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 mb-4 mb-md-0">
+                <i class="bi bi-mortarboard display-4 text-warning mb-3"></i>
+                <h2 class="fw-bold"><span class="counter-value">1000</span>+</h2>
+                <p class="text-uppercase small">Graduates</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <i class="bi bi-person-check display-4 text-warning mb-3"></i>
+                <h2 class="fw-bold"><span class="counter-value">500</span>+</h2>
+                <p class="text-uppercase small">Certified Teachers</p>
+            </div>
+            <div class="col-md-3 mb-4 mb-md-0">
+                <i class="bi bi-building display-4 text-warning mb-3"></i>
+                <h2 class="fw-bold"><span class="counter-value">100</span></h2>
+                <p class="text-uppercase small">Campuses</p>
+            </div>
+            <div class="col-md-3">
+                <i class="bi bi-people display-4 text-warning mb-3"></i>
+                <h2 class="fw-bold"><span class="counter-value">6285</span>+</h2>
+                <p class="text-uppercase small">Students</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light" style="background: url('{% static 'homepage/images/testimonial_bg.jpg' %}') no-repeat center center; background-size: cover; position: relative;">
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(248, 249, 250, 0.9);"></div>
+    <div class="container" style="position: relative; z-index: 1;">
+        <div class="section-header">
+            <h2>What People Say</h2>
+        </div>
+        <div class="testimonial-slider text-center">
+            {% if testimonials %}
+                {% for testimonial in testimonials %}
+                <div class="px-5">
+                    <div class="testimonial-content py-4">
+                        <i class="bi bi-quote display-1 text-warning opacity-25"></i>
+                        <div class="mb-3">
+                            <img src="https://ui-avatars.com/api/?name={{ testimonial.name|urlencode }}&background=febd11&color=fff&size=128" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="{{ testimonial.name }}">
+                        </div>
+                        <p class="lead font-italic mb-4">"{{ testimonial.content }}"</p>
+                        <h5 class="fw-bold">{{ testimonial.name }}</h5>
+                        <p class="text-muted small">{{ testimonial.designation|default:"Parent" }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="px-5">
+                    <div class="testimonial-content py-4">
+                        <i class="bi bi-quote display-1 text-warning opacity-25"></i>
+                        <div class="mb-3">
+                            <img src="{% static 'homepage/images/parent_avatar_1.jpg' %}" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="Sarah Williams">
+                        </div>
+                        <p class="lead font-italic mb-4">"Mount Carmel has transformed my child's learning experience. The teachers are dedicated and the environment is very supportive."</p>
+                        <h5 class="fw-bold">Sarah Williams</h5>
+                        <p class="text-muted small">Parent</p>
+                    </div>
+                </div>
+                <div class="px-5">
+                    <div class="testimonial-content py-4">
+                        <i class="bi bi-quote display-1 text-warning opacity-25"></i>
+                        <div class="mb-3">
+                            <img src="{% static 'homepage/images/parent_avatar_2.jpg' %}" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;" alt="David Chen">
+                        </div>
+                        <p class="lead font-italic mb-4">"The academic rigor combined with extracurricular activities makes this the best school in the region."</p>
+                        <h5 class="fw-bold">David Chen</h5>
+                        <p class="text-muted small">Alumnus</p>
+                    </div>
+                </div>
+{% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

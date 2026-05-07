@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Logs{% endblock %}
+{% block page_title %}Activity Logs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5>System Activity Logs</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>IP Address</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr id="log-{{ log.id }}">
+                        <td>{{ log.timestamp|date:"M d, Y H:i:s" }}</td>
+                        <td>{{ log.user.username|default:"System" }}</td>
+                        <td>
+                            <span class="badge {% if log.action == 'DELETE' %}bg-danger{% elif log.action == 'CREATE' %}bg-success{% else %}bg-info{% endif %}">
+                                {{ log.get_action_display }}
+                            </span>
+                        </td>
+                        <td>{{ log.description }}</td>
+                        <td><small class="text-muted">{{ log.ip_address }}</small></td>
+                        <td>
+                            <button onclick="deleteLog({{ log.id }})" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">No activity logs found.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if logs.has_other_pages %}
+        <div class="card-footer bg-white border-top">
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if logs.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ logs.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    
+                    <li class="page-item active"><span class="page-link">{{ logs.number }} of {{ logs.paginator.num_pages }}</span></li>
+                    
+                    {% if logs.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ logs.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function deleteLog(id) {
+    if (confirm('Are you sure you want to delete this activity log?')) {
+        fetch(`/notifications/logs/delete/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById(`log-${id}`).remove();
+            } else {
+                alert('Error deleting log: ' + (data.message || 'Unknown error'));
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

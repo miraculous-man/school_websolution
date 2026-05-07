@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Issue Book - School Management System{% endblock %}
+{% block page_title %}Issue Book{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">Issue Details</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Book *</label>
+                            <select name="book" class="form-select" required>
+                                <option value="">Select Book...</option>
+                                {% for book in books %}
+                                <option value="{{ book.id }}">{{ book.title }} by {{ book.author }} ({{ book.available_copies }} available)</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Borrower Type *</label>
+                            <select name="borrower_type" class="form-select" id="borrowerType" onchange="toggleBorrower()">
+                                <option value="student">Student</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="studentSelect">
+                            <label class="form-label">Student *</label>
+                            <select name="borrower" class="form-select" id="studentDropdown">
+                                <option value="">Select Student...</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}">{{ student.full_name }} ({{ student.admission_number }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-none" id="teacherSelect">
+                            <label class="form-label">Teacher *</label>
+                            <select name="borrower" class="form-select" id="teacherDropdown" disabled>
+                                <option value="">Select Teacher...</option>
+                                {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}">{{ teacher.full_name }} ({{ teacher.staff_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Issue Date *</label>
+                            <input type="date" name="issue_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Due Date *</label>
+                            <input type="date" name="due_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Issue Book
+                        </button>
+                        <a href="{% url 'library:issue_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleBorrower() {
+    const type = document.getElementById('borrowerType').value;
+    const studentSelect = document.getElementById('studentSelect');
+    const teacherSelect = document.getElementById('teacherSelect');
+    const studentDropdown = document.getElementById('studentDropdown');
+    const teacherDropdown = document.getElementById('teacherDropdown');
+    
+    if (type === 'student') {
+        studentSelect.classList.remove('d-none');
+        teacherSelect.classList.add('d-none');
+        studentDropdown.disabled = false;
+        teacherDropdown.disabled = true;
+    } else {
+        studentSelect.classList.add('d-none');
+        teacherSelect.classList.remove('d-none');
+        studentDropdown.disabled = true;
+        teacherDropdown.disabled = false;
+    }
+}
+</script>
+{% endblock %}

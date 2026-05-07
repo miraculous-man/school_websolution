@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Issues - School Management System{% endblock %}
+{% block page_title %}Book Issues{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Book Issues</span>
+        <a href="{% url 'library:issue_book' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Issue Book
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <select name="status" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Status</option>
+                    <option value="issued" {% if status_filter == 'issued' %}selected{% endif %}>Issued</option>
+                    <option value="returned" {% if status_filter == 'returned' %}selected{% endif %}>Returned</option>
+                    <option value="overdue" {% if status_filter == 'overdue' %}selected{% endif %}>Overdue</option>
+                </select>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Borrower</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issues %}
+                    <tr>
+                        <td>{{ issue.book.title|truncatechars:40 }}</td>
+                        <td>{% if issue.student %}{{ issue.student.full_name }}{% else %}{{ issue.teacher.full_name }}{% endif %}</td>
+                        <td>{{ issue.issue_date }}</td>
+                        <td>{{ issue.due_date }}</td>
+                        <td>
+                            <span class="badge bg-{% if issue.status == 'returned' %}success{% elif issue.status == 'issued' %}primary{% else %}danger{% endif %}">
+                                {{ issue.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if issue.status == 'issued' %}
+                            <a href="{% url 'library:return_book' issue.pk %}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-arrow-return-left"></i> Return
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No issues found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

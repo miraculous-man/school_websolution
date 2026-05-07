@@ -1,0 +1,56 @@
+{% extends 'homepage/base_public.html' %}
+
+{% block extra_css %}
+<style>
+    .letter-head { border-bottom: 2px solid #333; margin-bottom: 30px; padding-bottom: 10px; }
+    .letter-body { line-height: 1.6; }
+    .stamp { font-family: 'Courier New', Courier, monospace; color: green; border: 3px solid green; padding: 10px; display: inline-block; transform: rotate(-10deg); font-weight: bold; margin-top: 30px; }
+    @media print {
+        .no-print { display: none; }
+        .navbar, footer { display: none; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5 p-5 shadow-sm border bg-white">
+    <div class="letter-head text-center">
+        <h1>{{ settings.school_name|default:"MODERN EXCELLENCE SCHOOL" }}</h1>
+        <p>{{ settings.address|default:"123 Education Lane, Learning City" }} | Phone: {{ settings.phone|default:"(555) 123-4567" }}</p>
+    </div>
+    
+    <div class="text-end mb-4">
+        <p>Date: {{ admission.created_at|date:"F d, Y" }}</p>
+    </div>
+
+    <div class="letter-body">
+        <p>Dear <strong>{{ admission.student_name }}</strong>,</p>
+        
+        <p>We are pleased to inform you that your application for admission to <strong>{{ admission.grade }}</strong> has been reviewed and approved.</p>
+        
+        <p>After careful consideration of your academic background and potential, we believe you will be a valuable addition to our student body. Our school is committed to fostering an environment where every student can achieve their full potential.</p>
+        
+        <p>Next Steps:</p>
+        <ul>
+            <li>Submit your physical documents to the registrar's office.</li>
+            <li>Attend the orientation session on the first Monday of next month.</li>
+            <li>Complete the tuition payment within 14 days of this letter.</li>
+        </ul>
+
+        <p>We look forward to welcoming you to {{ settings.school_name|default:"Modern Excellence School" }}.</p>
+        
+        <div class="mt-5">
+            <p>Sincerely,</p>
+            <p><strong>The Admissions Office</strong></p>
+        </div>
+
+        <div class="stamp">OFFICIALLY APPROVED</div>
+    </div>
+    
+    <div class="mt-5 no-print text-center">
+        <button onclick="window.print()" class="btn btn-secondary">Print Letter</button>
+        <a href="{% url 'homepage:letter_pdf' admission.pk %}" class="btn btn-primary">Download PDF</a>
+        <a href="{% url 'homepage:home' %}" class="btn btn-link">Back to Home</a>
+    </div>
+</div>
+{% endblock %}

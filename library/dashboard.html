@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Library - School Management System{% endblock %}
+{% block page_title %}Library Dashboard{% endblock %}
+
+{% block content %}
+<div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-image: url('{% if user.profile.library_bg %}{{ user.profile.library_bg.url }}{% else %}{% static 'images/library_bg.jpg' %}{% endif %}'); background-size: cover; background-position: center; filter: brightness(0.6); z-index: -1;"></div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Total Books</p>
+                    <h3>{{ total_books }}</h3>
+                </div>
+                <i class="bi bi-book fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Available</p>
+                    <h3>{{ available_copies }}</h3>
+                </div>
+                <i class="bi bi-check-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card blue">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Issued</p>
+                    <h3>{{ books_issued }}</h3>
+                </div>
+                <i class="bi bi-arrow-right-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card red">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="mb-1 opacity-75">Overdue</p>
+                    <h3>{{ overdue_books }}</h3>
+                </div>
+                <i class="bi bi-exclamation-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header">Quick Actions</div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'library:book_add' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Add Book
+                    </a>
+                    <a href="{% url 'library:issue_book' %}" class="btn btn-success">
+                        <i class="bi bi-arrow-right-circle me-2"></i>Issue Book
+                    </a>
+                    <a href="{% url 'library:issue_list' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-list me-2"></i>View Issues
+                    </a>
+                    <a href="{% url 'library:categories' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-tags me-2"></i>Categories
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Recent Issues</span>
+                <a href="{% url 'library:issue_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Borrower</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in recent_issues %}
+                            <tr>
+                                <td>{{ issue.book.title|truncatechars:30 }}</td>
+                                <td>{% if issue.student %}{{ issue.student.full_name }}{% else %}{{ issue.teacher.full_name }}{% endif %}</td>
+                                <td>{{ issue.due_date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No recent issues</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

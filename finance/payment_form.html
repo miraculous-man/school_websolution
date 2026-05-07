@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Record Payment - School Management System{% endblock %}
+{% block page_title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">Payment Details</div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>Invoice:</strong> {{ invoice.invoice_number }} | 
+                    <strong>Student:</strong> {{ invoice.student.full_name }} | 
+                    <strong>Balance:</strong> ${{ invoice.balance }}
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Amount *</label>
+                            <input type="number" name="amount" class="form-control" step="0.01" max="{{ invoice.balance }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Date *</label>
+                            <input type="date" name="payment_date" class="form-control" value="{% now 'Y-m-d' %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Payment Method</label>
+                            <select name="payment_method" class="form-select">
+                                <option value="cash">Cash</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="card">Card Payment</option>
+                                <option value="cheque">Cheque</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Reference</label>
+                            <input type="text" name="reference" class="form-control" placeholder="Transaction ID, Cheque No, etc.">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea name="remarks" class="form-control" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Record Payment
+                        </button>
+                        <a href="{% url 'finance:invoice_detail' invoice.pk %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

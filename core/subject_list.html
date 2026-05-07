@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Subjects - School Management System{% endblock %}
+{% block page_title %}Subjects{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Subjects</h4>
+    <div class="d-flex gap-2">
+        {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
+        <a href="{% url 'core:subject_upload' %}" class="btn btn-outline-primary">
+            <i class="bi bi-cloud-upload"></i> Upload Materials
+        </a>
+        {% endif %}
+        {% if user.profile.role == 'admin' %}
+        <a href="{% url 'core:subject_add' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add Subject
+        </a>
+        {% endif %}
+    </div>
+</div>
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Class Levels</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td><span class="badge bg-primary">{{ subject.code }}</span></td>
+                    <td><a href="{% url 'core:subject_detail' subject.pk %}" class="fw-bold text-decoration-none">{{ subject.name }}</a></td>
+                    <td>
+                        {% for level in subject.class_levels.all %}
+                        <span class="badge bg-secondary me-1">{{ level.name }}</span>
+                        {% empty %}-{% endfor %}
+                    </td>
+                    <td>
+                        <a href="{% url 'core:subject_edit' subject.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="text-center text-muted py-4">No subjects defined. Add them via the admin panel.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Invoice - School Management System{% endblock %}
+{% block page_title %}Create Invoice{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Invoice Details</div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Student *</label>
+                    <select name="student" class="form-select" required>
+                        <option value="">Select Student...</option>
+                        {% for student in students %}
+                        <option value="{{ student.id }}">{{ student.full_name }} ({{ student.admission_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Session *</label>
+                    <select name="session" class="form-select" required>
+                        <option value="">Select Session...</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}">{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Due Date</label>
+                    <input type="date" name="due_date" class="form-control">
+                </div>
+            </div>
+
+            <h6 class="text-muted mb-3">Fee Items</h6>
+            <div id="fee-items">
+                <div class="row g-3 mb-3 fee-item">
+                    <div class="col-md-6">
+                        <select name="categories" class="form-select">
+                            <option value="">Select Fee Category...</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="number" name="amounts" class="form-control" placeholder="Amount" step="0.01">
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.fee-item').remove()">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" class="btn btn-outline-primary mb-4" onclick="addFeeItem()">
+                <i class="bi bi-plus-lg me-1"></i>Add Fee Item
+            </button>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg me-1"></i>Create Invoice
+                </button>
+                <a href="{% url 'finance:invoice_list' %}" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function addFeeItem() {
+    const container = document.getElementById('fee-items');
+    const html = `
+        <div class="row g-3 mb-3 fee-item">
+            <div class="col-md-6">
+                <select name="categories" class="form-select">
+                    <option value="">Select Fee Category...</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="number" name="amounts" class="form-control" placeholder="Amount" step="0.01">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger w-100" onclick="this.closest('.fee-item').remove()">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+}
+</script>
+{% endblock %}

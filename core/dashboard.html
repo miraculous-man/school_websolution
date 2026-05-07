@@ -1,0 +1,760 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - School Suite Pro{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ── Welcome Banner ─────────────────────────────────── */
+.welcome-banner {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+    border-radius: 20px;
+    color: #fff;
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 28px;
+    box-shadow: 0 8px 32px rgba(79,70,229,.35);
+}
+.welcome-banner::before {
+    content:'';
+    position:absolute;
+    top:-60px; right:-60px;
+    width:220px; height:220px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+}
+.welcome-banner::after {
+    content:'';
+    position:absolute;
+    bottom:-80px; right:80px;
+    width:160px; height:160px;
+    border-radius:50%;
+    background:rgba(255,255,255,.06);
+}
+.welcome-time { font-size:2.4rem; font-weight:800; letter-spacing:-1px; }
+.welcome-sub  { font-size:1rem; opacity:.85; }
+.live-clock   { font-size:2rem; font-weight:700; font-variant-numeric:tabular-nums; }
+.live-date    { font-size:.85rem; opacity:.8; }
+
+/* ── Stat Cards ─────────────────────────────────────── */
+.stat-card-new {
+    border-radius: 16px;
+    padding: 22px 22px 18px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s, box-shadow .25s;
+    cursor: default;
+    border: none;
+}
+.stat-card-new:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.18); }
+.stat-card-new .bg-icon {
+    position: absolute; right: -10px; bottom: -10px;
+    font-size: 5rem; opacity: .12;
+}
+.stat-card-new .stat-num { font-size: 2rem; font-weight: 800; }
+.stat-card-new .stat-label { font-size: .8rem; opacity: .85; letter-spacing: .5px; text-transform: uppercase; }
+.sc-indigo { background: linear-gradient(135deg,#4f46e5,#818cf8); box-shadow: 0 4px 20px rgba(79,70,229,.4); }
+.sc-green  { background: linear-gradient(135deg,#059669,#34d399); box-shadow: 0 4px 20px rgba(5,150,105,.35); }
+.sc-blue   { background: linear-gradient(135deg,#0284c7,#38bdf8); box-shadow: 0 4px 20px rgba(2,132,199,.35); }
+.sc-orange { background: linear-gradient(135deg,#d97706,#fbbf24); box-shadow: 0 4px 20px rgba(217,119,6,.35); }
+.sc-rose   { background: linear-gradient(135deg,#e11d48,#fb7185); box-shadow: 0 4px 20px rgba(225,29,72,.35); }
+.sc-teal   { background: linear-gradient(135deg,#0f766e,#2dd4bf); box-shadow: 0 4px 20px rgba(15,118,110,.35); }
+
+/* ── Attendance Ring ─────────────────────────────────── */
+.att-ring-wrap { display:flex; align-items:center; justify-content:center; flex-direction:column; }
+.att-ring { transform:rotate(-90deg); }
+.att-ring-track { fill:none; stroke:#e5e7eb; stroke-width:10; }
+.att-ring-fill  { fill:none; stroke:#4f46e5; stroke-width:10; stroke-linecap:round; transition: stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1); }
+.att-ring-text  { transform:rotate(90deg); text-anchor:middle; }
+
+/* ── Leaderboard ─────────────────────────────────────── */
+.lb-item {
+    display:flex; align-items:center; gap:12px;
+    padding: 10px 14px; border-radius:12px;
+    transition: background .2s;
+}
+.lb-item:hover { background: #f5f3ff; }
+.lb-rank {
+    width:32px; height:32px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:.85rem; flex-shrink:0;
+}
+.lb-rank.gold   { background:#fef08a; color:#92400e; box-shadow:0 2px 8px rgba(250,204,21,.5); }
+.lb-rank.silver { background:#e2e8f0; color:#475569; box-shadow:0 2px 8px rgba(148,163,184,.4); }
+.lb-rank.bronze { background:#fed7aa; color:#9a3412; box-shadow:0 2px 8px rgba(251,146,60,.4); }
+.lb-rank.other  { background:#f1f5f9; color:#64748b; }
+.lb-score { margin-left:auto; font-weight:700; font-size:.9rem; color:#4f46e5; white-space:nowrap; }
+.lb-bar { height:4px; background:#e0e7ff; border-radius:99px; margin-top:3px; }
+.lb-bar-fill { height:4px; background:linear-gradient(90deg,#4f46e5,#a855f7); border-radius:99px; }
+
+/* ── Speed Dial FAB ──────────────────────────────────── */
+.speed-dial { position:fixed; bottom:32px; right:32px; z-index:1050; }
+.speed-dial .fab-main {
+    width:58px; height:58px; border-radius:50%;
+    background:linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:#fff; border:none; font-size:1.5rem;
+    box-shadow: 0 6px 24px rgba(79,70,229,.5);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:transform .3s, box-shadow .3s;
+}
+.speed-dial .fab-main:hover { transform:scale(1.1); box-shadow:0 8px 32px rgba(79,70,229,.6); }
+.speed-dial .fab-main .icon-open  { transition:transform .3s opacity .3s; }
+.speed-dial .fab-main .icon-close { position:absolute; opacity:0; transform:rotate(-90deg); transition:transform .3s, opacity .3s; }
+.speed-dial.open .fab-main .icon-open  { opacity:0; transform:rotate(90deg); }
+.speed-dial.open .fab-main .icon-close { opacity:1; transform:rotate(0deg); }
+.speed-dial .fab-items { list-style:none; padding:0; margin:0 0 12px 0; display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+.speed-dial .fab-items li { display:flex; align-items:center; gap:10px; opacity:0; transform:translateY(20px) scale(.8); transition: opacity .2s, transform .2s; pointer-events:none; }
+.speed-dial.open .fab-items li { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.speed-dial.open .fab-items li:nth-child(1){transition-delay:.05s}
+.speed-dial.open .fab-items li:nth-child(2){transition-delay:.1s}
+.speed-dial.open .fab-items li:nth-child(3){transition-delay:.15s}
+.speed-dial.open .fab-items li:nth-child(4){transition-delay:.2s}
+.speed-dial.open .fab-items li:nth-child(5){transition-delay:.25s}
+.fab-label {
+    background:#1e1b4b; color:#fff; font-size:.78rem; font-weight:600;
+    padding:5px 12px; border-radius:20px; white-space:nowrap;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
+}
+.fab-btn {
+    width:44px; height:44px; border-radius:50%;
+    color:#fff; border:none; font-size:1.1rem;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 14px rgba(0,0,0,.2); cursor:pointer;
+    text-decoration:none; transition:transform .2s;
+}
+.fab-btn:hover { transform:scale(1.12); color:#fff; }
+
+/* ── Activity Ticker ─────────────────────────────────── */
+.ticker-wrap { overflow:hidden; background:#f0f9ff; border-radius:12px; padding:10px 18px; border:1px solid #bae6fd; }
+.ticker-label { font-size:.75rem; font-weight:700; color:#0284c7; text-transform:uppercase; letter-spacing:.5px; margin-right:14px; flex-shrink:0; }
+.ticker-inner { display:flex; gap:30px; animation: ticker-scroll 30s linear infinite; white-space:nowrap; }
+@keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.ticker-item { font-size:.82rem; color:#0c4a6e; }
+.ticker-item i { color:#0284c7; }
+
+/* ── Section headings ────────────────────────────────── */
+.section-heading { font-size:1rem; font-weight:700; color:#1e1b4b; display:flex; align-items:center; gap:8px; }
+
+/* ── Count-up ────────────────────────────────────────── */
+.count-up { display:inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════════════════════════════════════════
+     1. WELCOME BANNER
+════════════════════════════════════════════════════════ -->
+<div class="welcome-banner">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <div class="welcome-time" id="greetingText">Welcome back</div>
+            <p class="welcome-sub mb-1">
+                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                &nbsp;·&nbsp;
+                {% if user.profile.role == 'admin' %}School Administrator
+                {% elif user.profile.role == 'teacher' %}Teacher
+                {% elif user.profile.role == 'student' %}Student
+                {% elif user.profile.role == 'accountant' %}Accountant
+                {% elif user.profile.role == 'librarian' %}Librarian
+                {% else %}{{ user.profile.role|title }}{% endif %}
+            </p>
+            <p class="welcome-sub mb-0">
+                <i class="bi bi-calendar3 me-1"></i>
+                <span id="todayDate">{{ today|date:"l, F j, Y" }}</span>
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="live-clock" id="liveClock">--:--:--</div>
+            <div class="live-date">Live School Time</div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     2. ACTIVITY TICKER
+════════════════════════════════════════════════════════ -->
+<div class="ticker-wrap d-flex align-items-center mb-4">
+    <span class="ticker-label"><i class="bi bi-activity me-1"></i>Live</span>
+    <div style="overflow:hidden; flex:1;">
+        <div class="ticker-inner">
+            <span class="ticker-item"><i class="bi bi-people-fill me-1"></i>{{ total_students }} active students enrolled</span>
+            <span class="ticker-item"><i class="bi bi-person-badge-fill me-1"></i>{{ total_teachers }} teachers on staff</span>
+            <span class="ticker-item"><i class="bi bi-calendar-check-fill me-1"></i>{{ present_today }} students present today</span>
+            <span class="ticker-item"><i class="bi bi-book-fill me-1"></i>{{ books_issued }} books currently issued</span>
+            <span class="ticker-item"><i class="bi bi-laptop-fill me-1"></i>{{ active_exams }} active exam{{ active_exams|pluralize }}</span>
+            <span class="ticker-item"><i class="bi bi-clipboard2-check-fill me-1"></i>{{ total_subjects }} subjects offered</span>
+            {% if user.profile.role == 'admin' or user.profile.role == 'accountant' %}
+            <span class="ticker-item"><i class="bi bi-cash-stack me-1"></i>Total revenue: ₦{{ total_revenue|floatformat:0 }}</span>
+            {% endif %}
+            <span class="ticker-item"><i class="bi bi-people-fill me-1"></i>{{ total_students }} active students enrolled</span>
+            <span class="ticker-item"><i class="bi bi-person-badge-fill me-1"></i>{{ total_teachers }} teachers on staff</span>
+            <span class="ticker-item"><i class="bi bi-calendar-check-fill me-1"></i>{{ present_today }} students present today</span>
+            <span class="ticker-item"><i class="bi bi-book-fill me-1"></i>{{ books_issued }} books currently issued</span>
+            <span class="ticker-item"><i class="bi bi-laptop-fill me-1"></i>{{ active_exams }} active exam{{ active_exams|pluralize }}</span>
+            <span class="ticker-item"><i class="bi bi-clipboard2-check-fill me-1"></i>{{ total_subjects }} subjects offered</span>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     3. STAT CARDS (admin / new admissions row)
+════════════════════════════════════════════════════════ -->
+{% if user.profile.role == 'admin' %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl-2">
+        <a href="{% url 'homepage:admission_list' %}" class="text-decoration-none">
+            <div class="stat-card-new sc-rose">
+                <div class="stat-label">New Admissions</div>
+                <div class="stat-num count-up" data-target="{{ new_admissions_count }}">0</div>
+                <i class="bi bi-file-earmark-person bg-icon"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <a href="{% url 'students:student_list' %}" class="text-decoration-none">
+            <div class="stat-card-new sc-indigo">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-num count-up" data-target="{{ total_students }}">0</div>
+                <i class="bi bi-people bg-icon"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <a href="{% url 'teachers:teacher_list' %}" class="text-decoration-none">
+            <div class="stat-card-new sc-green">
+                <div class="stat-label">Total Teachers</div>
+                <div class="stat-num count-up" data-target="{{ total_teachers }}">0</div>
+                <i class="bi bi-person-badge bg-icon"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <a href="{% url 'finance:dashboard' %}" class="text-decoration-none">
+            <div class="stat-card-new sc-blue">
+                <div class="stat-label">Total Revenue</div>
+                <div class="stat-num">₦<span class="count-up" data-target="{{ total_revenue|floatformat:0 }}">0</span></div>
+                <i class="bi bi-currency-exchange bg-icon"></i>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <div class="stat-card-new sc-orange">
+            <div class="stat-label">Pending Fees</div>
+            <div class="stat-num">₦<span class="count-up" data-target="{{ pending_fees|floatformat:0 }}">0</span></div>
+            <i class="bi bi-exclamation-circle bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl-2">
+        <a href="{% url 'library:book_list' %}" class="text-decoration-none">
+            <div class="stat-card-new sc-teal">
+                <div class="stat-label">Books Issued</div>
+                <div class="stat-num count-up" data-target="{{ books_issued }}">0</div>
+                <i class="bi bi-book bg-icon"></i>
+            </div>
+        </a>
+    </div>
+</div>
+{% elif user.profile.role == 'teacher' %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-indigo">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-num count-up" data-target="{{ total_students }}">0</div>
+            <i class="bi bi-people bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-green">
+            <div class="stat-label">Present Today</div>
+            <div class="stat-num count-up" data-target="{{ present_today }}">0</div>
+            <i class="bi bi-calendar-check bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-orange">
+            <div class="stat-label">Absent Today</div>
+            <div class="stat-num count-up" data-target="{{ absent_today }}">0</div>
+            <i class="bi bi-calendar-x bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-blue">
+            <div class="stat-label">Active Exams</div>
+            <div class="stat-num count-up" data-target="{{ active_exams }}">0</div>
+            <i class="bi bi-laptop bg-icon"></i>
+        </div>
+    </div>
+</div>
+{% elif user.profile.role == 'student' %}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-indigo">
+            <div class="stat-label">My Subjects</div>
+            <div class="stat-num count-up" data-target="{{ total_subjects }}">0</div>
+            <i class="bi bi-book bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-blue">
+            <div class="stat-label">Active Exams</div>
+            <div class="stat-num count-up" data-target="{{ active_exams }}">0</div>
+            <i class="bi bi-laptop bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-green">
+            <div class="stat-label">Books Available</div>
+            <div class="stat-num count-up" data-target="{{ total_books }}">0</div>
+            <i class="bi bi-book-half bg-icon"></i>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="stat-card-new sc-teal">
+            <div class="stat-label">Total Classes</div>
+            <div class="stat-num count-up" data-target="{{ total_classes }}">0</div>
+            <i class="bi bi-building bg-icon"></i>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════
+     4. ATTENDANCE RING + LEADERBOARD + MINI STATS
+════════════════════════════════════════════════════════ -->
+<div class="row g-4 mb-4">
+
+    <!-- Attendance Ring -->
+    {% if user.profile.role != 'student' %}
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center py-4">
+                <div class="section-heading mb-3"><i class="bi bi-activity text-success"></i>Today's Attendance</div>
+                <div class="att-ring-wrap">
+                    <svg class="att-ring" width="130" height="130" viewBox="0 0 130 130">
+                        <circle class="att-ring-track" cx="65" cy="65" r="52"/>
+                        <circle class="att-ring-fill" id="attRingFill" cx="65" cy="65" r="52"
+                            stroke-dasharray="326.7"
+                            stroke-dashoffset="326.7"/>
+                        <g class="att-ring-text" transform="translate(65,65)">
+                            <text dy="-4" font-size="24" font-weight="800" fill="#4f46e5" text-anchor="middle" id="attPctText">0%</text>
+                            <text dy="18" font-size="11" fill="#94a3b8" text-anchor="middle">attendance</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="row text-center w-100 mt-3">
+                    <div class="col-6">
+                        <div class="fw-bold text-success fs-5 count-up" data-target="{{ present_today }}">0</div>
+                        <div class="text-muted" style="font-size:.75rem;">Present</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="fw-bold text-danger fs-5 count-up" data-target="{{ absent_today }}">0</div>
+                        <div class="text-muted" style="font-size:.75rem;">Absent</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Top Students Leaderboard -->
+    <div class="col-lg-{% if user.profile.role != 'student' %}5{% else %}7{% endif %} col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
+                <span class="section-heading"><i class="bi bi-trophy-fill text-warning"></i>Top Students</span>
+                <span class="badge bg-warning text-dark rounded-pill">Leaderboard</span>
+            </div>
+            <div class="card-body py-2 px-3">
+                {% if top_students %}
+                {% for s in top_students %}
+                {% if forloop.counter <= 10 %}
+                <div class="lb-item">
+                    <div class="lb-rank
+                        {% if forloop.counter == 1 %}gold
+                        {% elif forloop.counter == 2 %}silver
+                        {% elif forloop.counter == 3 %}bronze
+                        {% else %}other{% endif %}">
+                        {% if forloop.counter == 1 %}🥇
+                        {% elif forloop.counter == 2 %}🥈
+                        {% elif forloop.counter == 3 %}🥉
+                        {% else %}{{ forloop.counter }}{% endif %}
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div class="fw-semibold text-truncate" style="font-size:.88rem;">
+                            {{ s.student__first_name }} {{ s.student__last_name }}
+                        </div>
+                        <div class="text-muted" style="font-size:.73rem;">{{ s.student__current_class__name|default:"—" }}</div>
+                        <div class="lb-bar mt-1">
+                            <div class="lb-bar-fill" style="width:{{ s.avg_score|floatformat:0 }}%;"></div>
+                        </div>
+                    </div>
+                    <div class="lb-score">{{ s.avg_score|floatformat:1 }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-trophy text-muted" style="font-size:3rem; opacity:.3;"></i>
+                    <p class="text-muted mt-3 mb-0">Leaderboard will appear once results are entered.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Info Cards -->
+    <div class="col-lg-4">
+        <div class="row g-3 h-100">
+            <div class="col-6">
+                <div class="card border-0 shadow-sm h-100 text-center py-3">
+                    <i class="bi bi-building text-primary fs-1"></i>
+                    <div class="fw-bold fs-4 count-up" data-target="{{ total_classes }}">0</div>
+                    <div class="text-muted small">Classes</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card border-0 shadow-sm h-100 text-center py-3">
+                    <i class="bi bi-laptop text-info fs-1"></i>
+                    <div class="fw-bold fs-4 count-up" data-target="{{ active_exams }}">0</div>
+                    <div class="text-muted small">Active Exams</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card border-0 shadow-sm h-100 text-center py-3">
+                    <i class="bi bi-book text-success fs-1"></i>
+                    <div class="fw-bold fs-4 count-up" data-target="{{ total_books }}">0</div>
+                    <div class="text-muted small">Library Books</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card border-0 shadow-sm h-100 text-center py-3">
+                    <i class="bi bi-journal-bookmark text-warning fs-1"></i>
+                    <div class="fw-bold fs-4 count-up" data-target="{{ total_subjects }}">0</div>
+                    <div class="text-muted small">Subjects</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     5. PERFORMANCE CHART
+════════════════════════════════════════════════════════ -->
+<div class="card mb-4 border-0 shadow-sm">
+    <div class="card-header bg-white py-3 d-flex align-items-center gap-2">
+        <span class="section-heading"><i class="bi bi-bar-chart-line text-primary"></i>Student Academic Performance</span>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Session</label>
+                <select name="session" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Sessions</option>
+                    {% for session in sessions %}
+                    <option value="{{ session.id }}" {% if selected_session == session.id|stringformat:"s" %}selected{% endif %}>{{ session.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Term</label>
+                <select name="term" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Terms</option>
+                    {% for term in terms %}
+                    <option value="{{ term.id }}" {% if selected_term == term.id|stringformat:"s" %}selected{% endif %}>{{ term.name }} ({{ term.session.name }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Class</label>
+                <select name="class" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">All Classes</option>
+                    {% for classroom in classrooms %}
+                    <option value="{{ classroom.id }}" {% if selected_class == classroom.id|stringformat:"s" %}selected{% endif %}>{{ classroom.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-outline-secondary btn-sm w-100">Clear Filters</a>
+            </div>
+        </form>
+        {% if performance_chart %}
+            {% autoescape off %}{{ performance_chart }}{% endautoescape %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-bar-chart text-muted" style="font-size:3rem; opacity:.3;"></i>
+                <p class="text-muted mt-3">No result data available for the selected filters.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     6. CHARTS ROW
+════════════════════════════════════════════════════════ -->
+<div class="row g-4 mb-4">
+    {% if attendance_chart and user.profile.role != 'student' %}
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <span class="section-heading"><i class="bi bi-pie-chart text-success"></i>Attendance Today</span>
+            </div>
+            <div class="card-body">{% autoescape off %}{{ attendance_chart }}{% endautoescape %}</div>
+        </div>
+    </div>
+    {% endif %}
+    {% if student_chart and user.profile.role == 'admin' %}
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <span class="section-heading"><i class="bi bi-bar-chart text-primary"></i>Students by Class</span>
+            </div>
+            <div class="card-body">{% autoescape off %}{{ student_chart }}{% endautoescape %}</div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% if user.profile.role == 'admin' or user.profile.role == 'accountant' %}
+{% if revenue_chart %}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <span class="section-heading"><i class="bi bi-graph-up-arrow text-success"></i>Revenue Trend</span>
+    </div>
+    <div class="card-body">{% autoescape off %}{{ revenue_chart }}{% endautoescape %}</div>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════
+     7. ANNOUNCEMENTS
+════════════════════════════════════════════════════════ -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <span class="section-heading"><i class="bi bi-megaphone text-primary"></i>Announcements</span>
+        <a href="{% url 'notifications:announcements' %}" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for announcement in announcements %}
+            <div class="col-md-6">
+                <div class="p-3 h-100 border-start border-4 border-primary bg-light rounded shadow-sm">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="mb-0 fw-bold">{{ announcement.title }}</h6>
+                        <small class="text-muted ms-2 flex-shrink-0">{{ announcement.created_at|date:"M d" }}</small>
+                    </div>
+                    <p class="mb-2 text-secondary small">{{ announcement.content|truncatewords:25 }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary rounded-pill small">{{ announcement.get_audience_display }}</span>
+                        {% if announcement.created_by %}
+                        <small class="text-muted">By {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4">
+                <i class="bi bi-megaphone text-muted fs-2 opacity-50"></i>
+                <p class="text-muted mt-2 mb-0">No active announcements</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     8. RECENT TABLES
+════════════════════════════════════════════════════════ -->
+<div class="row g-4 mb-4">
+    {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="section-heading"><i class="bi bi-person-plus text-indigo"></i>Recent Students</span>
+                <a href="{% url 'students:student_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Name</th><th>Adm. No</th><th>Class</th></tr></thead>
+                        <tbody>
+                            {% for student in recent_students %}
+                            <tr>
+                                <td class="fw-semibold">{{ student.full_name }}</td>
+                                <td><span class="badge bg-light text-dark">{{ student.admission_number }}</span></td>
+                                <td>{{ student.current_class|default:'—' }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No students yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if user.profile.role == 'admin' or user.profile.role == 'accountant' %}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <span class="section-heading"><i class="bi bi-receipt text-success"></i>Recent Payments</span>
+                <a href="{% url 'finance:dashboard' %}" class="btn btn-sm btn-outline-success">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th>Receipt</th><th>Student</th><th>Amount</th></tr></thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark">{{ payment.receipt_number }}</span></td>
+                                <td>{{ payment.invoice.student.full_name }}</td>
+                                <td class="fw-bold text-success">₦{{ payment.amount }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center text-muted py-3">No payments yet</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     9. FLOATING SPEED DIAL (admin only)
+════════════════════════════════════════════════════════ -->
+{% if user.profile.role == 'admin' %}
+<div class="speed-dial" id="speedDial">
+    <ul class="fab-items">
+        <li>
+            <span class="fab-label">Add Student</span>
+            <a href="{% url 'students:student_add' %}" class="fab-btn" style="background:linear-gradient(135deg,#4f46e5,#818cf8);">
+                <i class="bi bi-person-plus-fill"></i>
+            </a>
+        </li>
+        <li>
+            <span class="fab-label">Add Teacher</span>
+            <a href="{% url 'teachers:teacher_add' %}" class="fab-btn" style="background:linear-gradient(135deg,#059669,#34d399);">
+                <i class="bi bi-person-badge-fill"></i>
+            </a>
+        </li>
+        <li>
+            <span class="fab-label">Mark Attendance</span>
+            <a href="{% url 'attendance:mark_student' %}" class="fab-btn" style="background:linear-gradient(135deg,#0284c7,#38bdf8);">
+                <i class="bi bi-calendar-check-fill"></i>
+            </a>
+        </li>
+        <li>
+            <span class="fab-label">Create Invoice</span>
+            <a href="{% url 'finance:invoice_create' %}" class="fab-btn" style="background:linear-gradient(135deg,#d97706,#fbbf24);">
+                <i class="bi bi-receipt-cutoff"></i>
+            </a>
+        </li>
+        <li>
+            <span class="fab-label">Announcement</span>
+            <a href="{% url 'notifications:announcements' %}" class="fab-btn" style="background:linear-gradient(135deg,#e11d48,#fb7185);">
+                <i class="bi bi-megaphone-fill"></i>
+            </a>
+        </li>
+    </ul>
+    <button class="fab-main" id="fabMainBtn" onclick="toggleDial()" title="Quick Actions">
+        <i class="bi bi-plus-lg icon-open"></i>
+        <i class="bi bi-x-lg icon-close"></i>
+    </button>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── Live Clock & Greeting ───────────────────────── */
+(function() {
+    const greetings = {
+        night:   ['Good night', 'Burning the midnight oil?', 'Working late?'],
+        morning: ['Good morning', 'Great start to the day!', 'Rise and shine!'],
+        noon:    ['Good afternoon', 'Keep up the great work!', 'Productive day ahead!'],
+        evening: ['Good evening', 'Wrapping up for the day?', 'Great work today!'],
+    };
+    function getGreeting() {
+        const h = new Date().getHours();
+        if (h < 5)  return greetings.night[Math.floor(Math.random()*greetings.night.length)];
+        if (h < 12) return greetings.morning[Math.floor(Math.random()*greetings.morning.length)];
+        if (h < 17) return greetings.noon[Math.floor(Math.random()*greetings.noon.length)];
+        if (h < 21) return greetings.evening[Math.floor(Math.random()*greetings.evening.length)];
+        return greetings.night[0];
+    }
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function tick() {
+        const now = new Date();
+        const el = document.getElementById('liveClock');
+        if (el) el.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    }
+    const gEl = document.getElementById('greetingText');
+    if (gEl) gEl.textContent = getGreeting();
+    tick();
+    setInterval(tick, 1000);
+})();
+
+/* ── Count-up Animation ─────────────────────────── */
+(function() {
+    function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+    function animateCount(el) {
+        const raw = el.getAttribute('data-target') || '0';
+        const target = parseFloat(raw.replace(/,/g,'')) || 0;
+        const duration = 1600;
+        const start = performance.now();
+        function step(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const value = Math.round(easeOutQuart(progress) * target);
+            el.textContent = value.toLocaleString();
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                animateCount(e.target);
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.count-up').forEach(el => observer.observe(el));
+})();
+
+/* ── Attendance Ring Animation ──────────────────── */
+(function() {
+    const pct = {{ attendance_pct }};
+    const circumference = 326.7;
+    const fill = document.getElementById('attRingFill');
+    const text = document.getElementById('attPctText');
+    if (!fill) return;
+    const offset = circumference - (pct / 100) * circumference;
+    setTimeout(() => {
+        fill.style.strokeDashoffset = offset;
+        let current = 0;
+        const interval = setInterval(() => {
+            current = Math.min(current + 1, pct);
+            if (text) text.textContent = current + '%';
+            if (current >= pct) clearInterval(interval);
+        }, 1400 / Math.max(pct, 1));
+    }, 300);
+})();
+
+/* ── Speed Dial FAB ─────────────────────────────── */
+function toggleDial() {
+    document.getElementById('speedDial').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    const dial = document.getElementById('speedDial');
+    if (dial && !dial.contains(e.target)) dial.classList.remove('open');
+});
+</script>
+{% endblock %}

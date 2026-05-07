@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - School Management System{% endblock %}
+{% block page_title %}Book Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if book.cover_image %}
+                <img src="{{ book.cover_image.url }}" class="img-fluid rounded mb-3" style="max-height: 300px;" alt="{{ book.title }}">
+                {% else %}
+                <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                    <i class="bi bi-book fs-1 text-muted"></i>
+                </div>
+                {% endif %}
+                <h5>{{ book.title }}</h5>
+                <p class="text-muted">by {{ book.author }}</p>
+                <span class="badge bg-{% if book.available_copies > 0 %}success{% else %}danger{% endif %} fs-6">
+                    {{ book.available_copies }}/{{ book.total_copies }} Available
+                </span>
+                <div class="d-grid gap-2 mt-3">
+                    <a href="{% url 'library:book_edit' book.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Edit Book
+                    </a>
+                    {% if book.available_copies > 0 %}
+                    <a href="{% url 'library:issue_book' %}" class="btn btn-success">
+                        <i class="bi bi-arrow-right-circle me-1"></i>Issue Book
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">Book Information</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">ISBN</small>
+                        <p class="mb-0">{{ book.isbn }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Category</small>
+                        <p class="mb-0">{{ book.category.name|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Publisher</small>
+                        <p class="mb-0">{{ book.publisher|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Publication Year</small>
+                        <p class="mb-0">{{ book.publication_year|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Shelf Location</small>
+                        <p class="mb-0">{{ book.shelf_location|default:'-' }}</p>
+                    </div>
+                    {% if book.description %}
+                    <div class="col-12">
+                        <small class="text-muted">Description</small>
+                        <p class="mb-0">{{ book.description }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Issue History</div>
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Borrower</th>
+                            <th>Issue Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for issue in issues %}
+                        <tr>
+                            <td>{% if issue.student %}{{ issue.student.full_name }}{% else %}{{ issue.teacher.full_name }}{% endif %}</td>
+                            <td>{{ issue.issue_date }}</td>
+                            <td>{{ issue.due_date }}</td>
+                            <td>
+                                <span class="badge bg-{% if issue.status == 'returned' %}success{% elif issue.status == 'issued' %}primary{% else %}danger{% endif %}">
+                                    {{ issue.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">No issue history</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

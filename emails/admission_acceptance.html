@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; }
+        .header { background-color: #4f46e5; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+        .content { padding: 30px; line-height: 1.6; color: #333; }
+        .footer { text-align: center; font-size: 12px; color: #777; margin-top: 20px; }
+        .btn { display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: white !important; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+        .credentials { background-color: #f9fafb; padding: 15px; border-radius: 5px; border-left: 4px solid #4f46e5; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Admission Acceptance</h1>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{ student_name }}</strong>,</p>
+            <p>Congratulations! We are pleased to inform you that your application for admission to <strong>{{ school_name }}</strong> has been accepted for <strong>{{ grade }}</strong>.</p>
+            
+            <p>Your student account has been created. You can now log in to the school portal using the following credentials:</p>
+            
+            <div class="credentials">
+                <p><strong>Login URL:</strong> {{ login_url }}</p>
+                <p><strong>Username:</strong> {{ username }}</p>
+                <p><strong>Temporary Password:</strong> {{ password }}</p>
+            </div>
+            
+            <p>Please ensure you change your password after your first login for security reasons.</p>
+            
+            <center>
+                <a href="{{ login_url }}" class="btn">Login to School Portal</a>
+            </center>
+            
+            <p>We look forward to having you as part of our academic community.</p>
+            
+            <p>Best regards,<br>The Admissions Team</p>
+        </div>
+        <div class="footer">
+            &copy; {% now "Y" %} {{ school_name }}. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
