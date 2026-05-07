@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Scratch Card Dashboard</h2>
+                <a href="{% url 'scratchcard:buy' %}" class="btn btn-success">
+                    <i class="bi bi-cart-plus me-1"></i>Buy New Card
+                </a>
+            </div>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if active_purchase %}
+            <!-- Visual Scratch Card -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-md-8">
+                    <div class="scratch-card-visual shadow-lg rounded-4 overflow-hidden position-relative">
+                        <div class="card-gradient-bg p-4 text-white">
+                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                <div>
+                                    <h4 class="fw-bold mb-0">SCHOOL SUITE PRO</h4>
+                                    <p class="small opacity-75">ACADEMIC RESULT ACCESS CARD</p>
+                                </div>
+                                <i class="bi bi-cpu-fill fs-2"></i>
+                            </div>
+                            
+                            <div class="text-center my-4 py-2">
+                                <div class="pin-display-bg rounded-3 p-3 mb-2">
+                                    <span id="cardCode" class="fs-4 fw-bold font-monospace tracking-wider text-dark d-block text-break">
+                                        {% if active_purchase.scratch_card %}
+                                            {{ active_purchase.scratch_card.card_code }}
+                                        {% else %}
+                                            SHORTCODE123
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-center gap-2">
+                                    <span class="badge bg-white text-primary px-3 py-2 rounded-pill">
+                                        <i class="bi bi-shield-check me-1"></i>ACTIVE & VALID
+                                    </span>
+                                    <button class="btn btn-sm btn-light rounded-pill px-3 shadow-sm" onclick="copyCode()">
+                                        <i class="bi bi-clipboard me-1"></i>Copy
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <script>
+                                function copyCode() {
+                                    const code = document.getElementById('cardCode').innerText.trim();
+                                    navigator.clipboard.writeText(code).then(() => {
+                                        const btn = event.currentTarget;
+                                        const originalHTML = btn.innerHTML;
+                                        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Copied!';
+                                        btn.classList.replace('btn-light', 'btn-success');
+                                        setTimeout(() => {
+                                            btn.innerHTML = originalHTML;
+                                            btn.classList.replace('btn-success', 'btn-light');
+                                        }, 2000);
+                                    }).catch(err => {
+                                        alert('Failed to copy code. Please select and copy manually.');
+                                    });
+                                }
+                            </script>
+                            
+                            <div class="d-flex justify-content-between align-items-end mt-4">
+                                <div class="small">
+                                    <p class="mb-0 opacity-75">Student Name</p>
+                                    <p class="fw-bold mb-0">{{ student.full_name|upper }}</p>
+                                </div>
+                                <div class="text-end small">
+                                    <p class="mb-0 opacity-75">Date Purchased</p>
+                                    <p class="fw-bold mb-0">{{ active_purchase.completed_at|date:"d M, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light border-0 py-2 text-center">
+                            <small class="text-muted font-monospace">VALID FOR ONE ACADEMIC TERM</small>
+                        </div>
+                        <!-- Decorative Elements -->
+                        <div class="card-shimmer"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <style>
+                .scratch-card-visual {
+                    max-width: 450px;
+                    margin: 0 auto;
+                    transition: transform 0.3s ease;
+                }
+                .scratch-card-visual:hover {
+                    transform: translateY(-5px);
+                }
+                .card-gradient-bg {
+                    background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+                    position: relative;
+                }
+                .pin-display-bg {
+                    background: #f8fafc;
+                    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+                    border: 2px dashed #cbd5e1;
+                }
+                .tracking-wider {
+                    letter-spacing: 0.15em;
+                }
+                .card-shimmer {
+                    position: absolute;
+                    top: -100%;
+                    left: -100%;
+                    width: 300%;
+                    height: 300%;
+                    background: linear-gradient(
+                        45deg,
+                        transparent 0%,
+                        rgba(255, 255, 255, 0.05) 45%,
+                        rgba(255, 255, 255, 0.1) 50%,
+                        rgba(255, 255, 255, 0.05) 55%,
+                        transparent 100%
+                    );
+                    animation: shimmer 5s infinite;
+                    pointer-events: none;
+                }
+                @keyframes shimmer {
+                    0% { transform: translate(-30%, -30%); }
+                    100% { transform: translate(30%, 30%); }
+                }
+            </style>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 text-primary">Available Exams</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for exam in all_exams %}
+                        <div class="list-group-item py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ exam.title }}</h6>
+                                    <small class="text-muted">
+                                        <i class="bi bi-journal-text me-1"></i>{{ exam.subject.name }} | 
+                                        <i class="bi bi-clock me-1"></i>{{ exam.duration_minutes }} min
+                                    </small>
+                                </div>
+                                {% if exam in accessible_exams %}
+                                    <span class="badge bg-soft-info text-info border border-info px-3 py-2">
+                                        <i class="bi bi-unlock me-1"></i>Accessed
+                                    </span>
+                                {% else %}
+                                    <a href="{% url 'scratchcard:activate_exam' exam.id %}" class="btn btn-primary btn-sm px-3">
+                                        <i class="bi bi-key me-1"></i>Activate
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-5">
+                            <p class="text-muted mb-0">No exams available yet.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-lock text-warning" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">Access Locked</h4>
+                    <p class="text-muted mb-4">You need an active scratch card to participate in exams and view results.</p>
+                    <a href="{% url 'scratchcard:buy' %}" class="btn btn-primary btn-lg px-5">
+                        <i class="bi bi-credit-card me-2"></i>Buy Scratch Card - ₦{{ card_price }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0">Student Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <img src="https://ui-avatars.com/api/?name={{ student.full_name }}&background=4f46e5&color=fff" class="rounded-circle shadow-sm mb-2" width="80">
+                        <h6 class="mb-0">{{ student.full_name }}</h6>
+                        <small class="text-muted">{{ student.admission_number }}</small>
+                    </div>
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Class</span>
+                            <span class="fw-bold">{{ student.current_class }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Card Price</span>
+                            <span class="fw-bold">₦{{ card_price }}</span>
+                        </li>
+                        {% if active_purchase %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            <span>Active Code</span>
+                            <span class="badge bg-light text-dark font-monospace">
+                                {% if active_purchase.scratch_card %}
+                                    {{ active_purchase.scratch_card.card_code }}
+                                {% else %}
+                                    CARD-CHINONYE
+                                {% endif %}
+                            </span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="bi bi-info-circle me-2 text-info"></i>Help</h6>
+                    <p class="small text-muted mb-0">Each scratch card grants you full access to all examinations and result viewing for the current term.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-soft-info { background-color: rgba(13, 202, 240, 0.1); }
+</style>
+{% endblock %}

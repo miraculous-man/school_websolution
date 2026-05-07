@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Students - School Management System{% endblock %}
+{% block page_title %}Students{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Student List</span>
+        <a href="{% url 'students:student_add' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add Student
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Search by name or admission no..." value="{{ query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="class" class="form-select">
+                    <option value="">All Classes</option>
+                    {% for classroom in classrooms %}
+                    <option value="{{ classroom.id }}" {% if class_filter == classroom.id|stringformat:"s" %}selected{% endif %}>{{ classroom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="graduated" {% if status_filter == 'graduated' %}selected{% endif %}>Graduated</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Admission No</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Class</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>
+                            {% if student.photo %}
+                            <img src="{{ student.photo.url }}" class="avatar" alt="{{ student.full_name }}">
+                            {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ student.first_name }}+{{ student.last_name }}&background=4f46e5&color=fff" class="avatar" alt="{{ student.full_name }}">
+                            {% endif %}
+                        </td>
+                        <td>{{ student.admission_number }}</td>
+                        <td><a href="{% url 'students:student_detail' student.pk %}">{{ student.full_name }}</a></td>
+                        <td>{{ student.get_gender_display }}</td>
+                        <td>{{ student.current_class|default:'-' }}</td>
+                        <td>
+                            <span class="badge bg-{% if student.status == 'active' %}success{% elif student.status == 'inactive' %}secondary{% else %}warning{% endif %}">
+                                {{ student.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'students:student_detail' student.pk %}" class="btn btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'students:student_edit' student.pk %}" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                <a href="{% url 'students:generate_id_card' student.pk %}" class="btn btn-outline-info" title="ID Card"><i class="bi bi-card-heading"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center text-muted py-4">No students found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

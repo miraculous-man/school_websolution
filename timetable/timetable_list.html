@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Timetables{% endblock %}
+{% block page_title %}Timetables{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>School Timetables</h2>
+    {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
+    <a href="{% url 'timetable:create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Create Timetable</a>
+    {% endif %}
+</div>
+<div class="row g-4">
+    {% for timetable in timetables %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ timetable.name }}</h5>
+                <p class="text-muted mb-3">
+                    <i class="bi bi-building me-2"></i>{{ timetable.classroom.name }}<br>
+                    <i class="bi bi-calendar3 me-2"></i>{{ timetable.term.name }}
+                </p>
+                <a href="{% url 'timetable:detail' timetable.id %}" class="btn btn-sm btn-outline-primary w-100">View Schedule</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12"><p class="text-center text-muted py-5">No timetables yet.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

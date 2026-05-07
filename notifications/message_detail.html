@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Message Detail</h5>
+        <div class="d-flex align-items-center">
+            <button onclick="deleteMessage({{ message.id }})" class="btn btn-outline-danger btn-sm me-2">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+            <div class="btn-group">
+                <a href="{% url 'notifications:inbox' %}" class="btn btn-outline-secondary btn-sm">Inbox</a>
+                <a href="{% url 'notifications:sent_messages' %}" class="btn btn-outline-secondary btn-sm">Sent</a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="mb-4 pb-3 border-bottom">
+            <p class="mb-1"><strong>From:</strong> {{ message.sender.get_full_name|default:message.sender.username }}</p>
+            <p class="mb-1"><strong>To:</strong> {{ message.recipient.get_full_name|default:message.recipient.username }}</p>
+            <p class="mb-1"><strong>Date:</strong> {{ message.created_at|date:"M d, Y H:i" }}</p>
+            <p class="mb-0"><strong>Subject:</strong> {{ message.subject }}</p>
+        </div>
+        <div class="message-body" style="white-space: pre-wrap;">
+            {{ message.body }}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+function deleteMessage(id) {
+    if (confirm('Are you sure you want to delete this message?')) {
+        fetch(`/notifications/message/delete/${id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.href = "{% url 'notifications:inbox' %}";
+            } else {
+                alert('Error: ' + (data.message || 'Unknown error'));
+            }
+        });
+    }
+}
+</script>
+{% endblock %}
+{% endblock %}

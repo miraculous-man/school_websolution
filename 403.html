@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="display-1 fw-bold text-danger">403</h1>
+            <h2 class="mb-4">Access Denied</h2>
+            <p class="lead mb-5">You do not have permission to access this page. Please contact the administrator if you believe this is an error.</p>
+            <a href="{% url 'core:dashboard' %}" class="btn btn-primary btn-lg">Return to Dashboard</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

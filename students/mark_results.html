@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load result_filters %}
+
+{% block title %}Mark Results{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'students:results_dashboard' %}">Results</a></li>
+                    <li class="breadcrumb-item active">Mark Results</li>
+                </ol>
+            </nav>
+            <h2><i class="bi bi-pencil-square me-2"></i>Mark Student Results</h2>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-filter me-2"></i>Select Class and Subject</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Class</label>
+                    <select name="class" class="form-select" required>
+                        <option value="">Select Class</option>
+                        {% for classroom in classrooms %}
+                        <option value="{{ classroom.id }}" {% if selected_class == classroom.id|stringformat:"i" %}selected{% endif %}>{{ classroom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Subject</label>
+                    <select name="subject" class="form-select" required>
+                        <option value="">Select Subject</option>
+                        {% for subject in subjects %}
+                        <option value="{{ subject.id }}" {% if selected_subject == subject.id|stringformat:"i" %}selected{% endif %}>{{ subject.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Session</label>
+                    <select name="session" class="form-select" required>
+                        <option value="">Select Session</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if selected_session == session.id|stringformat:"i" %}selected{% endif %}>{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Term</label>
+                    <select name="term" class="form-select" required>
+                        <option value="">Select Term</option>
+                        {% for term in terms %}
+                        <option value="{{ term.id }}" {% if selected_term == term.id|stringformat:"i" %}selected{% endif %}>{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Load Students
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if students %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people me-2"></i>Students ({{ students|length }})</h5>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="classroom" value="{{ selected_class }}">
+                <input type="hidden" name="subject" value="{{ selected_subject }}">
+                <input type="hidden" name="session" value="{{ selected_session }}">
+                <input type="hidden" name="term" value="{{ selected_term }}">
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Admission No</th>
+                                <th>Student Name</th>
+                                <th style="width: 120px;">CA Score (40)</th>
+                                <th style="width: 120px;">Exam Score (60)</th>
+                                <th>Total</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ student.admission_number }}</td>
+                                <td>{{ student.full_name }}</td>
+                                <td>
+                                    <input type="hidden" name="student_ids" value="{{ student.id }}">
+                                    <input type="number" name="ca_{{ student.id }}" class="form-control form-control-sm ca-input" 
+                                           min="0" max="40" step="0.5" data-student="{{ student.id }}"
+                                           value="{% if student.id in existing_results %}{{ existing_results|get_item:student.id|attr:'ca_score' }}{% else %}0{% endif %}">
+                                </td>
+                                <td>
+                                    <input type="number" name="exam_{{ student.id }}" class="form-control form-control-sm exam-input" 
+                                           min="0" max="60" step="0.5" data-student="{{ student.id }}"
+                                           value="{% if student.id in existing_results %}{{ existing_results|get_item:student.id|attr:'exam_score' }}{% else %}0{% endif %}">
+                                </td>
+                                <td class="total-cell" id="total_{{ student.id }}">
+                                    {% if student.id in existing_results %}{{ existing_results|get_item:student.id|attr:'total' }}{% else %}0{% endif %}
+                                </td>
+                                <td class="grade-cell" id="grade_{{ student.id }}">
+                                    {% if student.id in existing_results %}
+                                    <span class="badge {% if existing_results|get_item:student.id|attr:'grade' == 'A' %}bg-success{% elif existing_results|get_item:student.id|attr:'grade' == 'B' %}bg-primary{% elif existing_results|get_item:student.id|attr:'grade' == 'C' %}bg-info{% elif existing_results|get_item:student.id|attr:'grade' == 'D' %}bg-warning{% elif existing_results|get_item:student.id|attr:'grade' == 'E' %}bg-secondary{% else %}bg-danger{% endif %}">
+                                        {{ existing_results|get_item:student.id|attr:'grade' }}
+                                    </span>
+                                    {% else %}-{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-check-circle me-2"></i>Save Results
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const caInputs = document.querySelectorAll('.ca-input');
+            const examInputs = document.querySelectorAll('.exam-input');
+            
+            function updateTotal(studentId) {
+                const ca = parseFloat(document.querySelector(`input[name="ca_${studentId}"]`).value) || 0;
+                const exam = parseFloat(document.querySelector(`input[name="exam_${studentId}"]`).value) || 0;
+                const total = ca + exam;
+                
+                document.getElementById(`total_${studentId}`).textContent = total.toFixed(1);
+                
+                let grade = '';
+                let badgeClass = '';
+                if (total >= 70) { grade = 'A'; badgeClass = 'bg-success'; }
+                else if (total >= 60) { grade = 'B'; badgeClass = 'bg-primary'; }
+                else if (total >= 50) { grade = 'C'; badgeClass = 'bg-info'; }
+                else if (total >= 45) { grade = 'D'; badgeClass = 'bg-warning'; }
+                else if (total >= 40) { grade = 'E'; badgeClass = 'bg-secondary'; }
+                else { grade = 'F'; badgeClass = 'bg-danger'; }
+                
+                document.getElementById(`grade_${studentId}`).innerHTML = `<span class="badge ${badgeClass}">${grade}</span>`;
+            }
+            
+            caInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    updateTotal(this.dataset.student);
+                });
+            });
+            
+            examInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    updateTotal(this.dataset.student);
+                });
+            });
+        });
+    </script>
+    {% elif selected_class %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>No active students found in the selected class.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
