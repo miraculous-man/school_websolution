@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ student.full_name }} - Results{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'students:student_list' %}">Students</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'students:student_detail' student.pk %}">{{ student.full_name }}</a></li>
+                    <li class="breadcrumb-item active">Results</li>
+                </ol>
+            </nav>
+            <h2><i class="bi bi-journal-text me-2"></i>{{ student.full_name }}'s Results</h2>
+        </div>
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-person me-2"></i>Student Information</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Name:</strong> {{ student.full_name }}</p>
+                    <p><strong>Admission Number:</strong> {{ student.admission_number }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Class:</strong> {{ student.current_class|default:"N/A" }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge {% if student.status == 'active' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ student.get_status_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="bi bi-filter me-2"></i>Select Period</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Session</label>
+                    <select name="session" class="form-select" required>
+                        <option value="">Select Session</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if selected_session == session.id|stringformat:"i" %}selected{% endif %}>{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Term</label>
+                    <select name="term" class="form-select" required>
+                        <option value="">Select Term</option>
+                        {% for term in terms %}
+                        <option value="{{ term.id }}" {% if selected_term == term.id|stringformat:"i" %}selected{% endif %}>{{ term }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>View Results
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Results</h5>
+            <a href="{% url 'students:print_result' student.pk %}?session={{ selected_session }}&term={{ selected_term }}" class="btn btn-success">
+                <i class="bi bi-printer me-2"></i>Print Result
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Subject</th>
+                            <th class="text-center">CA (40)</th>
+                            <th class="text-center">Exam (60)</th>
+                            <th class="text-center">Total (100)</th>
+                            <th class="text-center">Grade</th>
+                            <th>Remark</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ result.subject.name }}</td>
+                            <td class="text-center">{{ result.ca_score }}</td>
+                            <td class="text-center">{{ result.exam_score }}</td>
+                            <td class="text-center fw-bold">{{ result.total }}</td>
+                            <td class="text-center">
+                                <span class="badge {% if result.grade == 'A' %}bg-success{% elif result.grade == 'B' %}bg-primary{% elif result.grade == 'C' %}bg-info{% elif result.grade == 'D' %}bg-warning{% elif result.grade == 'E' %}bg-secondary{% else %}bg-danger{% endif %}">
+                                    {{ result.grade }}
+                                </span>
+                            </td>
+                            <td>{{ result.remark }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Total Score:</td>
+                            <td class="text-center fw-bold">{{ total_score }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end fw-bold">Average:</td>
+                            <td class="text-center fw-bold">{{ average }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% elif selected_session and selected_term %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>No results found for the selected period.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0"><i class="bi bi-journal-check me-2 text-primary"></i>My Academic Results</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 mb-4">
+                <div class="col-md-5">
+                    <label class="form-label">Academic Session</label>
+                    <select name="session" class="form-select" onchange="this.form.submit()">
+                        <option value="">Select Session</option>
+                        {% for session in sessions %}
+                        <option value="{{ session.id }}" {% if selected_session == session.id|stringformat:"s" %}selected{% endif %}>{{ session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Term</label>
+                    <select name="term" class="form-select" onchange="this.form.submit()">
+                        <option value="">Select Term</option>
+                        {% for term in terms %}
+                        <option value="{{ term.id }}" {% if selected_term == term.id|stringformat:"s" %}selected{% endif %}>{{ term.name }} - {{ term.session.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+
+            {% if selected_session and selected_term %}
+                {% if has_access %}
+                    {% if results %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Subject</th>
+                                    <th class="text-center">CA (40)</th>
+                                    <th class="text-center">Exam (60)</th>
+                                    <th class="text-center">Total (100)</th>
+                                    <th class="text-center">Grade</th>
+                                    <th>Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for result in results %}
+                                <tr>
+                                    <td>{{ result.subject.name }}</td>
+                                    <td class="text-center">{{ result.ca_score }}</td>
+                                    <td class="text-center">{{ result.exam_score }}</td>
+                                    <td class="text-center"><strong>{{ result.total }}</strong></td>
+                                    <td class="text-center"><span class="badge bg-primary">{{ result.grade }}</span></td>
+                                    <td>{{ result.remark }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total Score:</strong></td>
+                                    <td class="text-center"><strong>{{ total_score }}</strong></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Average:</strong></td>
+                                    <td class="text-center"><strong>{{ average }}%</strong></td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'students:print_result' student.pk %}?session={{ selected_session }}&term={{ selected_term }}" class="btn btn-success">
+                            <i class="bi bi-printer me-2"></i>Print Result
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info border-0 shadow-sm">
+                        No results have been uploaded for this period yet.
+                    </div>
+                    {% endif %}
+                {% else %}
+                <div class="row justify-content-center py-5">
+                    <div class="col-md-6">
+                        <div class="card border-primary shadow">
+                            <div class="card-body text-center py-4">
+                                <i class="bi bi-shield-lock text-primary mb-3" style="font-size: 3rem;"></i>
+                                <h4 class="mb-3">Access Restricted</h4>
+                                <p class="text-muted mb-4">Please enter your 16-digit scratch card code to view results for this term.</p>
+                                <form method="post">
+                                    {% csrf_token %}
+                                    <div class="input-group mb-3">
+                                        <input type="text" name="card_code" class="form-control form-control-lg text-center" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="20" required>
+                                        <button class="btn btn-primary px-4" type="submit">Unlock Results</button>
+                                    </div>
+                                    <small class="text-muted">Scratch cards expire at the end of each term.</small>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-search text-muted mb-3" style="font-size: 3rem;"></i>
+                <p class="text-muted">Please select a session and term to view results.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

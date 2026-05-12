@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ teacher.full_name }} - School Management System{% endblock %}
+{% block page_title %}Teacher Details{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if teacher.photo %}
+                <img src="{{ teacher.photo.url }}" class="rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;" alt="{{ teacher.full_name }}">
+                {% else %}
+                <img src="https://ui-avatars.com/api/?name={{ teacher.first_name }}+{{ teacher.last_name }}&size=150&background=059669&color=fff" class="rounded-circle mb-3" alt="{{ teacher.full_name }}">
+                {% endif %}
+                <h4>{{ teacher.full_name }}</h4>
+                <p class="text-muted mb-2">{{ teacher.staff_id }}</p>
+                <span class="badge bg-{% if teacher.status == 'active' %}success{% elif teacher.status == 'on_leave' %}warning{% else %}secondary{% endif %} mb-3">{{ teacher.get_status_display }}</span>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'teachers:teacher_edit' teacher.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil me-1"></i>Edit Profile
+                    </a>
+                    <a href="{% url 'teachers:generate_staff_id_card' teacher.pk %}" class="btn btn-outline-info">
+                        <i class="bi bi-card-heading me-1"></i>Generate ID Card
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">Personal Information</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Gender</small>
+                        <p class="mb-0">{{ teacher.get_gender_display }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Date of Birth</small>
+                        <p class="mb-0">{{ teacher.date_of_birth|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Date Employed</small>
+                        <p class="mb-0">{{ teacher.date_employed }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Qualification</small>
+                        <p class="mb-0">{{ teacher.qualification|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Phone</small>
+                        <p class="mb-0">{{ teacher.phone|default:'-' }}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Email</small>
+                        <p class="mb-0">{{ teacher.email|default:'-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Teaching Assignment</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Subjects</small>
+                        <p class="mb-0">
+                            {% for subject in teacher.subjects.all %}
+                            <span class="badge bg-primary me-1">{{ subject.name }}</span>
+                            {% empty %}-{% endfor %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Classes</small>
+                        <p class="mb-0">
+                            {% for classroom in teacher.classes.all %}
+                            <span class="badge bg-info me-1">{{ classroom }}</span>
+                            {% empty %}-{% endfor %}
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Is Class Teacher</small>
+                        <p class="mb-0">{% if teacher.is_class_teacher %}Yes{% else %}No{% endif %}</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <small class="text-muted">Class Assigned</small>
+                        <p class="mb-0">{{ teacher.class_assigned|default:'-' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

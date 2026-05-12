@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Results Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="bi bi-journal-check me-2"></i>Results Management</h2>
+            <p class="text-muted">Manage student academic results</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-pencil-square text-primary" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="card-title">Mark Results</h4>
+                    <p class="card-text text-muted">Record student scores for CA and exams by class and subject</p>
+                    <a href="{% url 'students:mark_results' %}" class="btn btn-primary">
+                        <i class="bi bi-arrow-right me-2"></i>Go to Mark Results
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <i class="bi bi-eye text-success" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="card-title">View My Results</h4>
+                    <p class="card-text text-muted">View and print your academic results by term</p>
+                    <a href="{% url 'students:view_results' %}" class="btn btn-success">
+                        <i class="bi bi-arrow-right me-2"></i>View My Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Grading Scale</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Score Range</th>
+                                        <th>Grade</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>70 - 100</td><td><span class="badge bg-success">A</span></td><td>Excellent</td></tr>
+                                    <tr><td>60 - 69</td><td><span class="badge bg-primary">B</span></td><td>Very Good</td></tr>
+                                    <tr><td>50 - 59</td><td><span class="badge bg-info">C</span></td><td>Good</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Score Range</th>
+                                        <th>Grade</th>
+                                        <th>Remark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>45 - 49</td><td><span class="badge bg-warning">D</span></td><td>Fair</td></tr>
+                                    <tr><td>40 - 44</td><td><span class="badge bg-secondary">E</span></td><td>Pass</td></tr>
+                                    <tr><td>0 - 39</td><td><span class="badge bg-danger">F</span></td><td>Fail</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

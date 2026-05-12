@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Purchase Scratch Card</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <h5 class="mb-4">Unlock Exams & Results</h5>
+                    
+                    <div class="alert alert-info">
+                        <h6>Why buy a scratch card?</h6>
+                        <ul class="mb-0">
+                            <li>Access to all available exams</li>
+                            <li>View your exam results</li>
+                            <li>Practice unlimited question banks</li>
+                            <li>Get instant feedback</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card bg-light mb-4">
+                        <div class="card-body text-center">
+                            <h2 class="text-success">₦{{ card_price }}</h2>
+                            <small class="text-muted">One-time payment for unlimited exam access</small>
+                        </div>
+                    </div>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-lock-open"></i> Pay with Paystack - ₦{{ card_price }}
+                        </button>
+                    </form>
+                    
+                    <p class="text-muted text-center mt-3 small">
+                        Secure payment powered by Paystack
+                    </p>
+                    
+                    <a href="{% url 'scratchcard:dashboard' %}" class="btn btn-outline-secondary w-100 mt-2">
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Student Information</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ student.full_name }}</p>
+                    <p><strong>Admission No:</strong> {{ student.admission_number }}</p>
+                    <p><strong>Email:</strong> {{ student.user.email }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

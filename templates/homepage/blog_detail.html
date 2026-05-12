@@ -1,0 +1,58 @@
+{% extends 'homepage/base_public.html' %}
+
+{% block title %}{{ post.title }} - {{ settings.school_name|default:"Our School" }}{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 40vh;">
+    <div class="container text-center hero-content">
+        <h1>{{ post.title }}</h1>
+        <p><i class="bi bi-calendar me-2"></i>{{ post.created_at|date:"F d, Y" }} {% if post.author %} | <i class="bi bi-person me-1"></i>{{ post.author.get_full_name|default:post.author.username }}{% endif %}</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                {% if post.featured_image %}
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" class="img-fluid rounded-3 mb-4 w-100">
+                {% endif %}
+                <div class="blog-content">
+                    {{ post.content|linebreaks }}
+                </div>
+                
+                <hr class="my-5">
+                
+                <a href="{% url 'homepage:blog' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Blog
+                </a>
+            </div>
+        </div>
+        
+        {% if related_posts %}
+        <div class="mt-5">
+            <h3 class="text-center mb-4">Related Posts</h3>
+            <div class="row g-4">
+                {% for rpost in related_posts %}
+                <div class="col-lg-4">
+                    <div class="blog-card h-100">
+                        {% if rpost.featured_image %}
+                        <img src="{{ rpost.featured_image.url }}" alt="{{ rpost.title }}">
+                        {% else %}
+                        <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 150px;">
+                            <i class="bi bi-newspaper text-white" style="font-size: 3rem;"></i>
+                        </div>
+                        {% endif %}
+                        <div class="p-3">
+                            <h6>{{ rpost.title }}</h6>
+                            <a href="{% url 'homepage:blog_detail' rpost.slug %}" class="btn btn-link p-0">Read More</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

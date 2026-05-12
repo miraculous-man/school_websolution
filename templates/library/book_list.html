@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Books - School Management System{% endblock %}
+{% block page_title %}Book Catalog{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span>Books</span>
+        <a href="{% url 'library:book_add' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Add Book
+        </a>
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <input type="text" name="q" class="form-control" placeholder="Search by title, author, or ISBN..." value="{{ query }}">
+            </div>
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100">Filter</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ISBN</th>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Available</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td>{{ book.isbn }}</td>
+                        <td><a href="{% url 'library:book_detail' book.pk %}">{{ book.title }}</a></td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.category.name|default:'-' }}</td>
+                        <td>
+                            <span class="badge bg-{% if book.available_copies > 0 %}success{% else %}danger{% endif %}">
+                                {{ book.available_copies }}/{{ book.total_copies }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'library:book_detail' book.pk %}" class="btn btn-outline-primary" title="View"><i class="bi bi-eye"></i></a>
+                                <a href="{% url 'library:book_edit' book.pk %}" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No books found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,536 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>{% block title %}School Management System{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.26.0/dist/plotly.min.js"></script>
+    <script>
+        // Helper function to wait for Plotly to be available
+        window.waitForPlotly = function(callback) {
+            if (window.Plotly) {
+                callback();
+            } else {
+                setTimeout(() => window.waitForPlotly(callback), 50);
+            }
+        };
+    </script>
+    {% if user.is_authenticated %}
+    <style>
+        :root {
+            --primary-color: {{ user.profile.primary_color }};
+            --secondary-color: {{ user.profile.secondary_color }};
+            --accent-color: {{ user.profile.accent_color }};
+            --navbar-color: {{ user.profile.navbar_color }};
+            --sidebar-color: {{ user.profile.sidebar_color }};
+            --background-color: {{ user.profile.background_color }};
+            --text-color: {{ user.profile.text_color }};
+            --sidebar-width: 260px;
+        }
+    </style>
+    {% else %}
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --accent-color: #198754;
+            --navbar-color: #2c3e50;
+            --sidebar-color: #34495e;
+            --background-color: #ffffff;
+            --text-color: #333333;
+            --sidebar-width: 260px;
+        }
+    </style>
+    {% endif %}
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--background-color);
+            overflow-x: hidden;
+        }
+        /* Animation Classes */
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .sidebar .nav-link:active {
+            transform: scale(0.95);
+        }
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        .btn {
+            transition: all 0.2s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        /* ... existing styles ... */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background-color: var(--sidebar-color);
+            padding: 1rem;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .sidebar .brand {
+            color: #fff;
+            font-size: 1.25rem;
+            font-weight: 700;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link i {
+            width: 24px;
+            margin-right: 0.75rem;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+            min-height: 100vh;
+            background-color: transparent;
+            color: var(--text-color);
+            position: relative;
+        }
+        .top-bar {
+            background-color: var(--navbar-color);
+            color: white;
+            padding: 1rem 2rem;
+            margin: -2rem -2rem 2rem -2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #fff;
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+        .stat-card.green { background: linear-gradient(135deg, #059669, #10b981); }
+        .stat-card.blue { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+        .stat-card.orange { background: linear-gradient(135deg, #d97706, #f59e0b); }
+        .stat-card.red { background: linear-gradient(135deg, #dc2626, #ef4444); }
+        .stat-card h3 { font-size: 2rem; font-weight: 700; }
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        .table th {
+            background: #f8fafc;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .badge { font-weight: 500; }
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        @media (max-width: 991px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+            .sidebar.show { transform: translateX(0); }
+            .sidebar.show ~ .main-content #sidebar-overlay { display: block !important; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="bi bi-mortarboard-fill me-2"></i>
+            SchoolMS
+        </div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'core:dashboard' %}">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+            </li>
+            {% if user.profile.role == 'parent' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'parent' in request.path %}active{% endif %}" href="{% url 'students:parent_dashboard' %}">
+                    <i class="bi bi-house-heart"></i> Parent Portal
+                </a>
+            </li>
+            {% endif %}
+            {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'students' in request.path %}active{% endif %}" href="{% url 'students:student_list' %}">
+                    <i class="bi bi-people"></i> Students
+                </a>
+            </li>
+            {% endif %}
+            {% if user.profile.role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'admissions' in request.path %}active{% endif %}" href="{% url 'homepage:admission_list' %}">
+                    <i class="bi bi-file-earmark-person"></i> New Admissions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'teachers' in request.path %}active{% endif %}" href="{% url 'teachers:teacher_list' %}">
+                    <i class="bi bi-person-badge"></i> Teachers
+                </a>
+            </li>
+            {% endif %}
+            {% if user.profile.role == 'admin' or user.profile.role == 'teacher' or user.profile.role == 'student' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'attendance' in request.path %}active{% endif %}" href="{% url 'attendance:dashboard' %}">
+                    <i class="bi bi-calendar-check"></i> Attendance
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'cbt' in request.path %}active{% endif %}" href="{% url 'cbt:dashboard' %}">
+                    <i class="bi bi-laptop"></i> CBT / Exams
+                </a>
+            </li>
+            {% if user.profile.role == 'admin' or user.profile.role == 'accountant' or user.profile.role == 'student' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'finance' in request.path %}active{% endif %}" href="{% url 'finance:dashboard' %}">
+                    <i class="bi bi-currency-dollar"></i> Finance
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'scratchcard' in request.path %}active{% endif %}" href="{% url 'scratchcard:dashboard' %}">
+                    <i class="bi bi-ticket-perforated"></i> Scratch Cards
+                </a>
+            </li>
+            {% endif %}
+            {% if user.profile.role == 'admin' or user.profile.role == 'librarian' or user.profile.role == 'teacher' or user.profile.role == 'student' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'library' in request.path %}active{% endif %}" href="{% url 'library:dashboard' %}">
+                    <i class="bi bi-book"></i> Library
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'results' in request.path %}active{% endif %}" href="{% url 'students:results_dashboard' %}">
+                    <i class="bi bi-journal-check"></i> Results
+                </a>
+            </li>
+            {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'timetable' in request.path %}active{% endif %}" href="{% url 'timetable:list' %}">
+                    <i class="bi bi-calendar2-week"></i> Timetable
+                </a>
+            </li>
+            {% endif %}
+            {% if user.profile.role == 'admin' %}
+            <li class="nav-item">
+                <a class="nav-link {% if 'audit-logs' in request.path %}active{% endif %}" href="{% url 'core:audit_logs' %}">
+                    <i class="bi bi-journal-text"></i> Activity Logs
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'sessions' in request.path %}active{% endif %}" href="{% url 'core:session_list' %}">
+                    <i class="bi bi-calendar3"></i> Sessions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'terms' in request.path %}active{% endif %}" href="{% url 'core:term_list' %}">
+                    <i class="bi bi-clock-history"></i> Terms
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'classes' in request.path %}active{% endif %}" href="{% url 'core:class_list' %}">
+                    <i class="bi bi-building"></i> Classes
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'subjects' in request.path %}active{% endif %}" href="{% url 'core:subject_list' %}">
+                    <i class="bi bi-journal-text"></i> Subjects
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/">
+                    <i class="bi bi-gear"></i> Admin Panel
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'attendance:qr_scanner' %}">
+                    <i class="bi bi-qr-code-scan"></i> QR Attendance
+                </a>
+            </li>
+            <li class="nav-item mt-3">
+                <a class="nav-link {% if 'inbox' in request.path or 'compose' in request.path or 'message' in request.path %}active{% endif %}" href="{% url 'notifications:inbox' %}">
+                    <i class="bi bi-chat-dots"></i> Message Box
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if 'notifications' in request.path and 'inbox' not in request.path %}active{% endif %}" href="{% url 'notifications:list' %}">
+                    <i class="bi bi-bell"></i> Notifications
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'notifications:announcements' %}">
+                    <i class="bi bi-megaphone"></i> Announcements
+                </a>
+            </li>
+            <li class="nav-item mt-3">
+                <a class="nav-link" href="{% url 'accounts:profile' %}">
+                    <i class="bi bi-person-circle"></i> My Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'accounts:logout' %}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'homepage:home' %}">
+                    <i class="bi bi-house"></i> School Website
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div id="sidebar-overlay" class="d-lg-none" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; display: none;"></div>
+        <div class="top-bar">
+            <div>
+                <button class="btn btn-light d-lg-none me-2" onclick="document.querySelector('.sidebar').classList.toggle('show')">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="fw-semibold">{% block page_title %}Dashboard{% endblock %}</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown me-2">
+                    <button class="btn btn-link text-white position-relative p-0 border-0" type="button" id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell fs-5"></i>
+                        <span id="notification-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+                            0
+                        </span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="notificationBell" style="width: 320px; max-height: 400px; overflow-y: auto;">
+                        <div class="dropdown-header d-flex justify-content-between align-items-center border-bottom pb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold">Notifications</span>
+                                <button id="enable-notifications" class="btn btn-sm btn-outline-primary py-0" style="font-size: 0.7rem;" onclick="requestNotificationPermission(event)">Enable Alerts</button>
+                            </div>
+                            <button class="btn btn-sm btn-link text-decoration-none p-0" onclick="markAllNotificationsRead(event)">Mark all read</button>
+                        </div>
+                        <div id="notification-items">
+                            <div class="p-4 text-center text-muted small">No new notifications</div>
+                        </div>
+                        <div class="dropdown-footer border-top p-2 text-center">
+                            <a href="{% url 'notifications:list' %}" class="small text-decoration-none">View all notifications</a>
+                        </div>
+                    </div>
+                </div>
+                <a href="{% url 'accounts:theme_settings' %}" class="btn btn-sm btn-outline-secondary" title="Theme Settings">
+                    <i class="bi bi-palette"></i>
+                </a>
+                <span class="me-3">{{ user.get_full_name|default:user.username }}</span>
+                <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=4f46e5&color=fff" class="avatar" alt="Avatar">
+            </div>
+        </div>
+
+        {% if messages %}
+        <div class="mb-3">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script>
+        // Notification and Browser Push handling
+        function refreshNotifications() {
+            fetch('{% url "notifications:unread_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notification-badge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.classList.remove('d-none');
+                        updateNotificationDropdown();
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+                });
+        }
+
+        function updateNotificationDropdown() {
+            fetch('{% url "notifications:recent" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('notification-items');
+                    if (data.notifications && data.notifications.length > 0) {
+                        container.innerHTML = data.notifications.map(n => `
+                            <a href="/notifications/notification/${n.id}/" class="dropdown-item py-2 border-bottom ${n.is_read ? '' : 'bg-light'}">
+                                <div class="d-flex align-items-center">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold small">${n.title}</div>
+                                        <div class="text-muted smaller" style="font-size: 0.75rem;">${n.message}</div>
+                                        <div class="text-muted mt-1" style="font-size: 0.65rem;">${n.created_at}</div>
+                                    </div>
+                                    ${!n.is_read ? '<span class="bg-primary rounded-circle p-1 ms-2"></span>' : ''}
+                                </div>
+                            </a>
+                        `).join('');
+
+                        // Show browser notification if there's a new one
+                        if (Notification.permission === "granted" && data.notifications[0] && !data.notifications[0].is_read) {
+                            const lastId = localStorage.getItem('lastNotificationId');
+                            if (lastId != data.notifications[0].id) {
+                                try {
+                                    // Use modern Notification API if available, or fallback gracefully
+                                    if ("Notification" in window && Notification.permission === "granted") {
+                                        new Notification(data.notifications[0].title, {
+                                            body: data.notifications[0].message,
+                                            icon: 'https://ui-avatars.com/api/?name=S&background=4f46e5&color=fff'
+                                        });
+                                    }
+                                } catch (e) {
+                                    console.log("Browser notification error:", e);
+                                    // Some browsers in specific contexts (like iframes) require ServiceWorker
+                                    // but we'll stick to basic Notification for simplicity first
+                                }
+                                localStorage.setItem('lastNotificationId', data.notifications[0].id);
+                            }
+                        }
+                    }
+                });
+        }
+
+        function markAllNotificationsRead(e) {
+            e.stopPropagation();
+            fetch('{% url "notifications:mark_all_read" %}', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' }
+            }).then(() => refreshNotifications());
+        }
+
+        function requestNotificationPermission(e) {
+            if (e) e.stopPropagation();
+            console.log("Requesting notification permission...");
+            
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications. Please try a different browser like Chrome or Firefox.");
+                return;
+            }
+            
+            // If already denied, we can't request again via JS. User must reset in browser settings.
+            if (Notification.permission === "denied") {
+                alert("Notifications are blocked in your browser settings. To enable them:\n\n1. Click the lock/info icon next to the URL\n2. Change Notification setting to 'Allow'\n3. Refresh the page");
+                return;
+            }
+
+            // If already granted, just show a confirmation
+            if (Notification.permission === "granted") {
+                document.getElementById('enable-notifications').classList.add('d-none');
+                new Notification("Notifications Already Active", {
+                    body: "You are already set up to receive instant alerts.",
+                    icon: 'https://ui-avatars.com/api/?name=S&background=4f46e5&color=fff'
+                });
+                return;
+            }
+
+            // Standard request flow
+            Notification.requestPermission().then(permission => {
+                console.log("Permission result:", permission);
+                if (permission === "granted") {
+                    document.getElementById('enable-notifications').classList.add('d-none');
+                    new Notification("Success!", {
+                        body: "Desktop alerts are now active for your account.",
+                        icon: 'https://ui-avatars.com/api/?name=S&background=4f46e5&color=fff'
+                    });
+                } else if (permission === "denied") {
+                    alert("Notifications were blocked. You can enable them later by clicking the lock icon in your browser's address bar.");
+                }
+            }).catch(err => {
+                console.error("Error requesting permission:", err);
+                // Fallback for older browsers or restricted environments
+                alert("There was an issue enabling notifications. Please check your browser settings.");
+            });
+        }
+
+        // Check permission on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const btn = document.getElementById('enable-notifications');
+            if (Notification.permission === "granted") {
+                btn.classList.add('d-none');
+            }
+
+            // Sidebar auto-close handling
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('show');
+                });
+            }
+        });
+
+        // Refresh every 30 seconds
+        if ({{ user.is_authenticated|yesno:"true,false" }}) {
+            setInterval(refreshNotifications, 30000);
+            refreshNotifications();
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

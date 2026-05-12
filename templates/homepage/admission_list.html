@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block page_title %}New Admissions{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Pending Applications</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student Name</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admission in admissions %}
+                    <tr>
+                        <td>{{ admission.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="fw-bold">{{ admission.first_name }} {{ admission.last_name }}</div>
+                            <small class="text-muted">{{ admission.email }}</small>
+                        </td>
+                        <td>{{ admission.grade }}</td>
+                        <td>
+                            <span class="badge {% if admission.status == 'Enrolled' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ admission.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#modal-{{ admission.pk }}" title="View Details">
+                                    <i class="bi bi-eye"></i> Details
+                                </button>
+                                {% if admission.status != 'Enrolled' %}
+                                <a href="{% url 'homepage:convert_to_student' admission.pk %}" class="btn btn-outline-success" title="Enroll as Student">
+                                    <i class="bi bi-person-plus"></i> Enroll
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No new applications found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal container outside the table loop for better stability -->
+{% for admission in admissions %}
+<div class="modal fade" id="modal-{{ admission.pk }}" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Application Details - {{ admission.first_name }} {{ admission.last_name }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Student Details</h6>
+                        <p class="mb-1"><span class="text-muted small">Full Name:</span><br>{{ admission.first_name }} {{ admission.other_name }} {{ admission.last_name }}</p>
+                        <p class="mb-1"><span class="text-muted small">Gender:</span><br>{{ admission.get_gender_display }}</p>
+                        <p class="mb-1"><span class="text-muted small">Date of Birth:</span><br>{{ admission.date_of_birth|date:"M d, Y"|default:"N/A" }}</p>
+                        <p class="mb-1"><span class="text-muted small">Email:</span><br>{{ admission.email }}</p>
+                        <p class="mb-1"><span class="text-muted small">Phone:</span><br>{{ admission.phone }}</p>
+                        <p class="mb-1"><span class="text-muted small">Address:</span><br>{{ admission.address }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Parent/Guardian Details</h6>
+                        <p class="mb-1"><span class="text-muted small">Parent Name:</span><br>{{ admission.parent_name }}</p>
+                        <p class="mb-1"><span class="text-muted small">Occupation:</span><br>{{ admission.parent_occupation }}</p>
+                        <p class="mb-1"><span class="text-muted small">Email:</span><br>{{ admission.parent_email }}</p>
+                        <p class="mb-1"><span class="text-muted small">Phone:</span><br>{{ admission.parent_phone }}</p>
+                        <p class="mb-1"><span class="text-muted small">Address:</span><br>{{ admission.parent_address }}</p>
+                    </div>
+                </div>
+                <div class="bg-light p-3 rounded">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <span class="text-muted small">Applying for Grade:</span>
+                            <div class="h5 mb-0 fw-bold">{{ admission.grade }}</div>
+                        </div>
+                        <div class="col-auto text-end">
+                            <span class="text-muted small">Application Date:</span>
+                            <div>{{ admission.created_at|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                {% if admission.status != 'Enrolled' %}
+                <a href="{% url 'homepage:convert_to_student' admission.pk %}" class="btn btn-success">
+                    Confirm Enrollment
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">No new applications found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

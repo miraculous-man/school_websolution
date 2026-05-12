@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Create Timetable{% endblock %}
+{% block page_title %}Create Timetable{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">New Timetable</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Timetable Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="classroom" class="form-label">Classroom</label>
+                        <select class="form-select" id="classroom" name="classroom" required>
+                            <option>-- Select Classroom --</option>
+                            {% for classroom in classrooms %}<option value="{{ classroom.id }}">{{ classroom.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="term" class="form-label">Term</label>
+                        <select class="form-select" id="term" name="term" required>
+                            <option>-- Select Term --</option>
+                            {% for term in terms %}<option value="{{ term.id }}">{{ term.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="academic_session" class="form-label">Academic Session</label>
+                        <select class="form-select" id="academic_session" name="academic_session" required>
+                            <option>-- Select Session --</option>
+                            {% for session in sessions %}<option value="{{ session.id }}">{{ session.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Create Timetable</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

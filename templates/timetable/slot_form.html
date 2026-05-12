@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Add Time Slot{% endblock %}
+{% block page_title %}Add Time Slot{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Add Time Slot to {{ timetable.name }}</h5></div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="day" class="form-label">Day</label>
+                        <select class="form-select" id="day" name="day" required>
+                            <option>-- Select Day --</option>
+                            {% for value, label in days %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <select class="form-select" id="subject" name="subject" required>
+                            <option>-- Select Subject --</option>
+                            {% for subject in subjects %}<option value="{{ subject.id }}">{{ subject.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="teacher" class="form-label">Teacher (Optional)</label>
+                        <select class="form-select" id="teacher" name="teacher">
+                            <option value="">-- No Teacher --</option>
+                            {% for teacher in teachers %}<option value="{{ teacher.id }}">{{ teacher.get_full_name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="room" class="form-label">Room/Location</label>
+                        <input type="text" class="form-control" id="room" name="room" placeholder="e.g., Room 101">
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Add Slot</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

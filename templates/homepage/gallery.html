@@ -1,0 +1,86 @@
+{% extends 'homepage/base_public.html' %}
+{% load homepage_tags %}
+
+{% block title %}Gallery - {{ settings.school_name|default:"Our School" }}{% endblock %}
+
+{% block content %}
+<section class="hero" style="min-height: 50vh;">
+    <div class="container text-center hero-content">
+        <h1>Our Gallery</h1>
+        <p>Explore moments and memories from our school</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        {% if categories %}
+        <div class="text-center mb-4">
+            <a href="{% url 'homepage:gallery' %}" class="btn {% if not selected_category %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">All</a>
+            {% for category in categories %}
+            <a href="{% url 'homepage:gallery' %}?category={{ category.id }}" class="btn {% if selected_category == category.id|stringformat:'s' %}btn-primary{% else %}btn-outline-primary{% endif %} m-1">{{ category.name }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="row g-4">
+            {% for image in images %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100 shadow-sm border-0">
+                    {% if image.video_url %}
+                    <div class="ratio ratio-16x9">
+                        <iframe src="{{ image.video_url|replace:'watch?v=,embed/' }}" title="{{ image.title }}" allowfullscreen></iframe>
+                    </div>
+                    {% elif image.image %}
+                    <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}" style="height: 250px; object-fit: cover;">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ image.title }}</h5>
+                        {% if image.description %}
+                        <p class="card-text text-muted small">{{ image.description|truncatewords:15 }}</p>
+                        {% endif %}
+                        <div class="d-flex gap-2 mt-3">
+                            {% if image.video_url %}
+                            <a href="{{ image.video_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-youtube me-1"></i>Play
+                            </a>
+                            <a href="https://ssyoutube.com/en1/{{ image.video_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                            {% elif image.image %}
+                            <a href="{{ image.image.url }}" download class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-images text-muted" style="font-size: 5rem;"></i>
+                <h4 class="mt-3">No images yet</h4>
+                <p class="text-muted">Gallery images will appear here once added.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if images.has_other_pages %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if images.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ images.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Previous</a></li>
+                {% endif %}
+                {% for num in images.paginator.page_range %}
+                <li class="page-item {% if images.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if images.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ images.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
