@@ -100,20 +100,6 @@ class Announcement(models.Model):
         return self.title
 
 
-class PushSubscription(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='push_subscriptions')
-    endpoint = models.TextField(unique=True)
-    p256dh = models.TextField()
-    auth = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.user.username} - push subscription"
-
-
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')

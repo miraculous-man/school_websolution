@@ -6,7 +6,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.utils import timezone
 from django.db import models
-from .models import Notification, Announcement, Message, PushSubscription
+from .models import Notification, Announcement, Message
 from django.contrib.auth.models import User
 
 @login_required
@@ -68,11 +68,10 @@ def compose_message(request):
                     logger.error(f"Failed to send email to {recipient.email}: {e}")
                     messages.error(request, f"Failed to send email to {recipient.email}. Error: {str(e)}")
 
-            # SMS sending via Termii
+            # SMS sending
             if hasattr(recipient, 'profile') and recipient.profile.phone:
                 from .models import SMSLog
-                import requests
-                import json
+                from twilio.rest import Client
                 import os
                 
                 sms_body = f"New School Message: {subject}. Check your portal."
@@ -84,53 +83,52 @@ def compose_message(request):
                 )
                 
                 try:
-                    termii_api_key = os.environ.get('TERMII_API_KEY')
-                    termii_sender_id = os.environ.get('TERMII_SENDER_ID', 'SchoolApp')
+                    account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+                    auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+                    twilio_number = os.environ.get('TWILIO_PHONE_NUMBER')
                     
-                    # Normalize phone number for Termii
+                    # Normalize phone number to E.164 format for Twilio (starts with +)
                     raw_phone = recipient.profile.phone.strip()
                     formatted_phone = raw_phone
-                    if raw_phone.startswith('+'):
-                        formatted_phone = raw_phone[1:]
-                    elif raw_phone.startswith('0') and len(raw_phone) == 11:
-                        formatted_phone = '234' + raw_phone[1:]
-                    
-                    if termii_api_key:
-                        payload = {
-                            "to": formatted_phone,
-                            "from": termii_sender_id,
-                            "sms": sms_body,
-                            "type": "plain",
-                            "channel": "generic",
-                            "api_key": termii_api_key
-                        }
-                        headers = {
-                            'Content-Type': 'application/json',
-                        }
-                        
-                        response = requests.post(
-                            "https://api.ng.termii.com/api/sms/send",
-                            headers=headers,
-                            data=json.dumps(payload),
-                            timeout=30
-                        )
-                        result = response.json()
-                        
-                        if response.status_code == 200 and (result.get('status') == 'success' or result.get('message') == 'Successfully Sent'):
-                            sms_log.status = 'sent'
-                            sms_log.sent_at = timezone.now()
-                            sms_log.save()
-                            messages.success(request, f"SMS notification sent to {formatted_phone}")
+                    if not raw_phone.startswith('+'):
+                        if raw_phone.startswith('0') and len(raw_phone) == 11:
+                            formatted_phone = '+234' + raw_phone[1:]
                         else:
+                            formatted_phone = '+' + raw_phone
+                    
+                    if account_sid and auth_token and twilio_number:
+                        # Ensure twilio_number is also in E.164 format if it's not already
+                        # Twilio phone numbers are usually already formatted correctly (+123...)
+                        # but some users might provide them without the plus.
+                        from_number = twilio_number.strip()
+                        if not from_number.startswith('+'):
+                            if from_number.startswith('0') and len(from_number) == 11:
+                                from_number = '+234' + from_number[1:]
+                            else:
+                                from_number = '+' + from_number
+
+                        if formatted_phone == from_number:
                             sms_log.status = 'failed'
-                            sms_log.error_message = result.get('message', 'Unknown error from Termii')
+                            sms_log.error_message = f"Recipient number {formatted_phone} is same as Twilio sender number."
                             sms_log.save()
-                            messages.warning(request, f"SMS failed: {sms_log.error_message}")
+                            messages.warning(request, "SMS not sent: Recipient cannot be the same as the Twilio sender.")
+                            continue
+
+                        client = Client(account_sid, auth_token)
+                        client.messages.create(
+                            body=sms_body,
+                            from_=from_number,
+                            to=formatted_phone
+                        )
+                        sms_log.status = 'sent'
+                        sms_log.sent_at = timezone.now()
+                        sms_log.save()
+                        messages.success(request, f"SMS notification sent to {formatted_phone}")
                     else:
                         sms_log.status = 'failed'
-                        sms_log.error_message = "Termii API key missing in environment."
+                        sms_log.error_message = "Twilio credentials missing in environment."
                         sms_log.save()
-                        messages.warning(request, "SMS not sent: Termii configuration missing.")
+                        messages.warning(request, "SMS not sent: Twilio credentials missing.")
                 except Exception as e:
                     sms_log.status = 'failed'
                     sms_log.error_message = str(e)
@@ -288,208 +286,16 @@ def announcement_list(request):
     }
     
     audience = role_map.get(role, 'students')
-    selected_audience = request.GET.get('audience')
-
-    all_qs = Announcement.objects.filter(is_active=True)
-
-    if role == 'admin' and selected_audience:
-        announcements = all_qs.filter(audience=selected_audience)
-    elif role == 'admin':
-        announcements = all_qs
-    else:
-        announcements = all_qs.filter(
-            models.Q(audience='all') | models.Q(audience=audience)
-        ).filter(
-            models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=now)
-        )
-
-    total_count = all_qs.count()
-    active_count = all_qs.filter(
+    
+    announcements = Announcement.objects.filter(
+        is_active=True
+    ).filter(
+        models.Q(audience='all') | models.Q(audience=audience)
+    ).filter(
         models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=now)
-    ).count()
-    today_count = all_qs.filter(created_at__date=now.date()).count()
-    expired_count = all_qs.filter(expires_at__lt=now).count()
-
+    )
+    
     context = {
         'announcements': announcements,
-        'selected_audience': selected_audience,
-        'total_count': total_count,
-        'active_count': active_count,
-        'today_count': today_count,
-        'expired_count': expired_count,
     }
     return render(request, 'notifications/announcement_list.html', context)
-
-
-def _get_audience_users(audience):
-    role_map = {
-        'all': None,
-        'students': 'student',
-        'teachers': 'teacher',
-        'parents': 'parent',
-        'staff': ['accountant', 'librarian', 'teacher'],
-    }
-    mapping = role_map.get(audience)
-    if mapping is None:
-        return User.objects.all()
-    if isinstance(mapping, list):
-        return User.objects.filter(profile__role__in=mapping)
-    return User.objects.filter(profile__role=mapping)
-
-
-def _send_push_to_users(target_users, title, body, url='/notifications/announcements/'):
-    from django.conf import settings as django_settings
-    from pywebpush import webpush, WebPushException
-    import json
-
-    vapid_private = django_settings.VAPID_PRIVATE_KEY
-    vapid_claims = {"sub": f"mailto:{django_settings.VAPID_ADMIN_EMAIL}"}
-
-    subscriptions = PushSubscription.objects.filter(user__in=target_users)
-    for sub in subscriptions:
-        try:
-            webpush(
-                subscription_info={
-                    "endpoint": sub.endpoint,
-                    "keys": {"p256dh": sub.p256dh, "auth": sub.auth},
-                },
-                data=json.dumps({"title": title, "body": body, "url": url}),
-                vapid_private_key=vapid_private,
-                vapid_claims=vapid_claims,
-            )
-        except WebPushException as ex:
-            if ex.response and ex.response.status_code in (404, 410):
-                sub.delete()
-        except Exception:
-            pass
-
-
-@login_required
-def create_announcement(request):
-    if request.user.profile.role not in ('admin', 'teacher'):
-        return redirect('notifications:announcements')
-
-    if request.method == 'POST':
-        title = request.POST.get('title', '').strip()
-        content = request.POST.get('content', '').strip()
-        audience = request.POST.get('audience', 'all')
-        expires_at = request.POST.get('expires_at') or None
-        do_send_email = request.POST.get('send_email') == 'on'
-        do_send_sms = request.POST.get('send_sms') == 'on'
-
-        if not title or not content:
-            messages.error(request, 'Title and content are required.')
-            return redirect('notifications:announcements')
-
-        announcement = Announcement.objects.create(
-            title=title,
-            content=content,
-            audience=audience,
-            expires_at=expires_at,
-            send_email=do_send_email,
-            send_sms=do_send_sms,
-            is_active=True,
-            created_by=request.user,
-        )
-
-        target_users = _get_audience_users(audience)
-
-        # 1. In-app notifications for all target users
-        notifications_to_create = []
-        for u in target_users:
-            notifications_to_create.append(Notification(
-                user=u,
-                title=f"📢 {title}",
-                message=content[:200],
-                notification_type='announcement',
-                link='/notifications/announcements/',
-            ))
-        Notification.objects.bulk_create(notifications_to_create, ignore_conflicts=True)
-
-        # 2. Email notifications
-        if do_send_email:
-            from django.core.mail import send_mail
-            from django.conf import settings as django_settings
-            email_recipients = [u.email for u in target_users if u.email]
-            if email_recipients:
-                try:
-                    from_email = django_settings.DEFAULT_FROM_EMAIL or django_settings.EMAIL_HOST_USER
-                    send_mail(
-                        subject=f"📢 Announcement: {title}",
-                        message=f"{content}\n\n---\nThis is an official announcement from School Suite Pro.\nLogin to your portal for more details.",
-                        from_email=from_email,
-                        recipient_list=email_recipients,
-                        fail_silently=True,
-                    )
-                except Exception as e:
-                    logger.error(f"Failed to send announcement emails: {e}")
-
-        # 3. Browser push notifications to all subscribed target users
-        try:
-            _send_push_to_users(target_users, f"📢 {title}", content[:120], '/notifications/announcements/')
-        except Exception as e:
-            logger.error(f"Push notification error: {e}")
-
-        messages.success(request, f'Announcement "{title}" posted and notifications sent!')
-
-    return redirect('notifications:announcements')
-
-
-@login_required
-def push_subscribe(request):
-    if request.method == 'POST':
-        import json
-        try:
-            data = json.loads(request.body)
-            endpoint = data.get('endpoint')
-            p256dh = data.get('keys', {}).get('p256dh')
-            auth = data.get('keys', {}).get('auth')
-
-            if endpoint and p256dh and auth:
-                PushSubscription.objects.update_or_create(
-                    endpoint=endpoint,
-                    defaults={
-                        'user': request.user,
-                        'p256dh': p256dh,
-                        'auth': auth,
-                    }
-                )
-                return JsonResponse({'status': 'subscribed'})
-        except Exception as e:
-            logger.error(f"Push subscribe error: {e}")
-    return JsonResponse({'status': 'error'}, status=400)
-
-
-@login_required
-def push_unsubscribe(request):
-    if request.method == 'POST':
-        import json
-        try:
-            data = json.loads(request.body)
-            endpoint = data.get('endpoint')
-            if endpoint:
-                PushSubscription.objects.filter(user=request.user, endpoint=endpoint).delete()
-                return JsonResponse({'status': 'unsubscribed'})
-        except Exception as e:
-            logger.error(f"Push unsubscribe error: {e}")
-    return JsonResponse({'status': 'error'}, status=400)
-
-
-@login_required
-def push_public_key(request):
-    from django.conf import settings as django_settings
-    return JsonResponse({'public_key': django_settings.VAPID_PUBLIC_KEY})
-
-
-@login_required
-def delete_announcement(request, pk):
-    if request.user.profile.role != 'admin':
-        return redirect('notifications:announcements')
-
-    if request.method == 'POST':
-        announcement = get_object_or_404(Announcement, pk=pk)
-        title = announcement.title
-        announcement.delete()
-        messages.success(request, f'Announcement "{title}" deleted.')
-
-    return redirect('notifications:announcements')

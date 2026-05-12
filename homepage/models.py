@@ -175,14 +175,6 @@ class Admission(models.Model):
     parent_occupation = models.CharField(max_length=100, default='')
     
     status = models.CharField(max_length=20, default='Pending')
-    
-    # Document Uploads
-    passport_photo = models.ImageField(upload_to='admissions/passports/', blank=True, null=True)
-    nin_image = models.ImageField(upload_to='admissions/nin/', blank=True, null=True)
-    state_of_origin_cert = models.ImageField(upload_to='admissions/origin/', blank=True, null=True)
-    first_school_leaving_cert = models.ImageField(upload_to='admissions/certificates/', blank=True, null=True)
-    other_documents = models.FileField(upload_to='admissions/others/', blank=True, null=True)
-    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
