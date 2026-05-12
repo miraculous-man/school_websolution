@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Classes - School Management System{% endblock %}
+{% block page_title %}Classes{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Class Levels & Classrooms</h4>
+    <a href="{% url 'core:class_add' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add Class
+    </a>
+</div>
+<div class="card">
+    <div class="card-body">
+        {% for level in class_levels %}
+        <div class="mb-4">
+            <h5 class="text-primary">{{ level.name }}</h5>
+            <div class="row g-3">
+                {% for classroom in level.classroom_set.all %}
+                <div class="col-md-3">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6>{{ classroom.name }}</h6>
+                            <small class="text-muted d-block">Capacity: {{ classroom.capacity }}</small>
+                            <a href="{% url 'core:class_edit' classroom.pk %}" class="btn btn-sm btn-link">Edit</a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <p class="text-muted mb-0">No classrooms in this level</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center py-4">No class levels defined. Add them via the admin panel.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
