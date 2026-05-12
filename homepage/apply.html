@@ -9,7 +9,7 @@
                     <h2 class="card-title text-center mb-4 fw-bold">Admission Application</h2>
                     <p class="text-center text-muted mb-5">Please fill in all details accurately to begin your child's journey with us.</p>
                     
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="POST">
                         {% csrf_token %}
                         
                         <h5 class="mb-3 text-primary border-bottom pb-2">Student Information</h5>
@@ -54,7 +54,7 @@
                             </div>
                         </div>
                         
-                        <div class="row mb-3">
+                        <div class="row mb-4">
                             <div class="col-md-6">
                                 <label class="form-label">Email Address</label>
                                 <input type="email" name="email" class="form-control" required>
@@ -65,37 +65,9 @@
                             </div>
                         </div>
                         
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label">Home Address</label>
                             <textarea name="address" class="form-control" rows="2" required></textarea>
-                        </div>
-
-                        <h5 class="mb-3 text-primary border-bottom pb-2">Documents & Uploads</h5>
-                        <div class="row mb-3">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Passport Photograph</label>
-                                <input type="file" name="passport_photo" class="form-control" accept="image/*" required>
-                                <div class="form-text">Professional face photograph</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">NIN Slip/ID Image</label>
-                                <input type="file" name="nin_image" class="form-control" accept="image/*" required>
-                                <div class="form-text">Student's National ID or NIN slip</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">State of Origin Certificate</label>
-                                <input type="file" name="state_of_origin_cert" class="form-control" accept="image/*" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">First School Leaving Cert (FSLC)</label>
-                                <input type="file" name="first_school_leaving_cert" class="form-control" accept="image/*,application/pdf">
-                                <div class="form-text">Optional for lower primary</div>
-                            </div>
-                            <div class="col-12 mb-3">
-                                <label class="form-label">Other Supporting Documents</label>
-                                <input type="file" name="other_documents" class="form-control">
-                                <div class="form-text">Birth certificate, previous results, etc. (Zip or PDF)</div>
-                            </div>
                         </div>
                         
                         <h5 class="mb-3 text-primary border-bottom pb-2">Parent/Guardian Information</h5>

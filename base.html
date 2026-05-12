@@ -185,7 +185,6 @@
             .main-content { margin-left: 0; }
         }
     </style>
-    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="sidebar">
@@ -464,114 +463,61 @@
             }).then(() => refreshNotifications());
         }
 
-        // ─── Service Worker & Push Notification Setup ───────────────────
-        const VAPID_PUBLIC_KEY = '{{ vapid_public_key }}';
-
-        function urlBase64ToUint8Array(base64String) {
-            const padding = '='.repeat((4 - base64String.length % 4) % 4);
-            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
-            const rawData = window.atob(base64);
-            const outputArray = new Uint8Array(rawData.length);
-            for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
-            return outputArray;
-        }
-
-        async function registerServiceWorker() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) return null;
-            try {
-                const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-                await navigator.serviceWorker.ready;
-                return reg;
-            } catch (e) {
-                console.log('Service Worker registration failed:', e);
-                return null;
-            }
-        }
-
-        async function subscribeToPush(reg) {
-            if (!VAPID_PUBLIC_KEY || VAPID_PUBLIC_KEY === '') return;
-            try {
-                const existing = await reg.pushManager.getSubscription();
-                if (existing) {
-                    await sendSubscriptionToServer(existing);
-                    return;
-                }
-                const subscription = await reg.pushManager.subscribe({
-                    userVisibleOnly: true,
-                    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                });
-                await sendSubscriptionToServer(subscription);
-            } catch (e) {
-                console.log('Push subscription failed:', e);
-            }
-        }
-
-        async function sendSubscriptionToServer(subscription) {
-            try {
-                const sub = subscription.toJSON();
-                await fetch('{% url "notifications:push_subscribe" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify(sub)
-                });
-            } catch (e) {
-                console.log('Failed to send subscription to server:', e);
-            }
-        }
-
-        async function requestNotificationPermission(e) {
+        function requestNotificationPermission(e) {
             if (e) e.stopPropagation();
-
+            console.log("Requesting notification permission...");
+            
             if (!("Notification" in window)) {
-                alert("This browser does not support desktop notifications. Please try Chrome or Firefox.");
+                alert("This browser does not support desktop notifications. Please try a different browser like Chrome or Firefox.");
                 return;
             }
-
+            
+            // If already denied, we can't request again via JS. User must reset in browser settings.
             if (Notification.permission === "denied") {
-                alert("Notifications are blocked. To enable:\n1. Click the lock icon next to the URL\n2. Set Notifications to 'Allow'\n3. Refresh the page");
+                alert("Notifications are blocked in your browser settings. To enable them:\n\n1. Click the lock/info icon next to the URL\n2. Change Notification setting to 'Allow'\n3. Refresh the page");
                 return;
             }
 
+            // If already granted, just show a confirmation
             if (Notification.permission === "granted") {
                 document.getElementById('enable-notifications').classList.add('d-none');
-                const reg = await registerServiceWorker();
-                if (reg) await subscribeToPush(reg);
+                new Notification("Notifications Already Active", {
+                    body: "You are already set up to receive instant alerts.",
+                    icon: 'https://ui-avatars.com/api/?name=S&background=4f46e5&color=fff'
+                });
                 return;
             }
 
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-                document.getElementById('enable-notifications').classList.add('d-none');
-                const reg = await registerServiceWorker();
-                if (reg) await subscribeToPush(reg);
-                if (reg) {
-                    reg.showNotification("Notifications Enabled!", {
-                        body: "You'll now receive instant alerts for announcements and updates.",
-                        icon: 'https://ui-avatars.com/api/?name=SP&background=0d6efd&color=fff&size=128'
+            // Standard request flow
+            Notification.requestPermission().then(permission => {
+                console.log("Permission result:", permission);
+                if (permission === "granted") {
+                    document.getElementById('enable-notifications').classList.add('d-none');
+                    new Notification("Success!", {
+                        body: "Desktop alerts are now active for your account.",
+                        icon: 'https://ui-avatars.com/api/?name=S&background=4f46e5&color=fff'
                     });
+                } else if (permission === "denied") {
+                    alert("Notifications were blocked. You can enable them later by clicking the lock icon in your browser's address bar.");
                 }
-            } else if (permission === "denied") {
-                alert("Notifications were blocked. You can enable them later via the browser address bar.");
-            }
+            }).catch(err => {
+                console.error("Error requesting permission:", err);
+                // Fallback for older browsers or restricted environments
+                alert("There was an issue enabling notifications. Please check your browser settings.");
+            });
         }
 
-        // Check permission on load and auto-subscribe if already granted
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Check permission on load
+        document.addEventListener('DOMContentLoaded', () => {
             const btn = document.getElementById('enable-notifications');
             if (Notification.permission === "granted") {
-                if (btn) btn.classList.add('d-none');
-                {% if user.is_authenticated %}
-                const reg = await registerServiceWorker();
-                if (reg) await subscribeToPush(reg);
-                {% endif %}
+                btn.classList.add('d-none');
             }
 
             // Sidebar auto-close handling
             const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('sidebar-overlay');
+            
             if (overlay) {
                 overlay.addEventListener('click', () => {
                     sidebar.classList.remove('show');

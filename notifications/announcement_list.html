@@ -5,208 +5,40 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-12">
+    <div class="col-lg-10 mx-auto">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="mb-1"><i class="bi bi-megaphone me-2 text-primary"></i>Announcements</h4>
-                <p class="text-muted mb-0">Official notices and updates for the school community</p>
-            </div>
-            {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-                <i class="bi bi-plus-circle me-2"></i>New Announcement
-            </button>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-{% if user.profile.role == 'admin' %}
-<div class="row mb-4 g-3">
-    <div class="col-md-3">
-        <div class="card border-0 bg-primary text-white text-center p-3">
-            <div class="fs-2 fw-bold">{{ total_count }}</div>
-            <div class="small">Total Announcements</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 bg-success text-white text-center p-3">
-            <div class="fs-2 fw-bold">{{ active_count }}</div>
-            <div class="small">Active</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 bg-info text-white text-center p-3">
-            <div class="fs-2 fw-bold">{{ today_count }}</div>
-            <div class="small">Posted Today</div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card border-0 bg-warning text-white text-center p-3">
-            <div class="fs-2 fw-bold">{{ expired_count }}</div>
-            <div class="small">Expired</div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
-<div class="row">
-    <div class="col-lg-8">
-        {% for announcement in announcements %}
-        <div class="card mb-4 border-0 shadow-sm announcement-card">
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <span class="badge 
-                        {% if announcement.audience == 'all' %}bg-primary
-                        {% elif announcement.audience == 'students' %}bg-success
-                        {% elif announcement.audience == 'teachers' %}bg-warning text-dark
-                        {% elif announcement.audience == 'parents' %}bg-info
-                        {% else %}bg-secondary{% endif %}
-                        me-2">
-                        <i class="bi bi-people me-1"></i>{{ announcement.get_audience_display }}
-                    </span>
-                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ announcement.created_at|date:"F d, Y" }}</small>
-                </div>
-                <h5 class="card-title mt-2 fw-bold">{{ announcement.title }}</h5>
-                <p class="card-text text-muted">{{ announcement.content|linebreaks }}</p>
-                <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-2">
-                    {% if announcement.created_by %}
-                    <small class="text-muted">
-                        <i class="bi bi-person me-1"></i>
-                        Posted by {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}
-                    </small>
-                    {% endif %}
-                    <div class="d-flex gap-2">
-                        {% if announcement.send_email %}<span class="badge bg-light text-dark border"><i class="bi bi-envelope me-1"></i>Email</span>{% endif %}
-                        {% if announcement.send_sms %}<span class="badge bg-light text-dark border"><i class="bi bi-chat-dots me-1"></i>SMS</span>{% endif %}
-                        {% if announcement.expires_at %}
-                        <small class="text-warning"><i class="bi bi-calendar-x me-1"></i>Expires {{ announcement.expires_at|date:"M d, Y" }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+            <h4 class="mb-0"><i class="bi bi-megaphone me-2"></i>Announcements</h4>
             {% if user.profile.role == 'admin' %}
-            <div class="card-footer bg-light d-flex justify-content-end gap-2 border-0 py-2">
-                <form method="POST" action="{% url 'notifications:delete_announcement' announcement.pk %}" class="d-inline" onsubmit="return confirm('Delete this announcement?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
-                </form>
-            </div>
+            <a href="/admin/notifications/announcement/add/" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-2"></i>Add Announcement
+            </a>
             {% endif %}
+        </div>
+        
+        <div id="announcement-container">
+            {% for announcement in announcements %}
+            <div class="card mb-4 announcement-card" data-id="{{ announcement.id }}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5 class="card-title mb-0">{{ announcement.title }}</h5>
+                    <small class="text-muted">{{ announcement.created_at|date:"F d, Y" }}</small>
+                </div>
+                <p class="card-text">{{ announcement.content|linebreaks }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="badge bg-secondary">{{ announcement.get_audience_display }}</span>
+                    {% if announcement.created_by %}
+                    <small class="text-muted">By: {{ announcement.created_by.get_full_name|default:announcement.created_by.username }}</small>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% empty %}
-        <div class="card border-0 shadow-sm">
-            <div class="card-body text-center py-5">
-                <i class="bi bi-megaphone text-muted" style="font-size: 4rem;"></i>
-                <h5 class="mt-3 text-muted">No Announcements Yet</h5>
-                <p class="text-muted">There are no announcements for you at this time. Check back later.</p>
-                {% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
-                <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#createAnnouncementModal">
-                    <i class="bi bi-plus-circle me-2"></i>Create First Announcement
-                </button>
-                {% endif %}
-            </div>
+        <div class="text-center py-5">
+            <i class="bi bi-megaphone text-muted" style="font-size: 5rem;"></i>
+            <h4 class="mt-3">No announcements</h4>
+            <p class="text-muted">There are no announcements for you at this time.</p>
         </div>
         {% endfor %}
     </div>
-
-    <div class="col-lg-4">
-        <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-white border-0 fw-bold">
-                <i class="bi bi-filter me-2 text-primary"></i>Filter by Audience
-            </div>
-            <div class="list-group list-group-flush">
-                <a href="{% url 'notifications:announcements' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if not selected_audience %}active{% endif %}">
-                    All Announcements
-                    <span class="badge bg-primary rounded-pill">{{ total_count }}</span>
-                </a>
-                <a href="?audience=all" class="list-group-item list-group-item-action {% if selected_audience == 'all' %}active{% endif %}">
-                    <i class="bi bi-people me-2"></i>Everyone
-                </a>
-                <a href="?audience=students" class="list-group-item list-group-item-action {% if selected_audience == 'students' %}active{% endif %}">
-                    <i class="bi bi-mortarboard me-2"></i>Students
-                </a>
-                <a href="?audience=teachers" class="list-group-item list-group-item-action {% if selected_audience == 'teachers' %}active{% endif %}">
-                    <i class="bi bi-person-workspace me-2"></i>Teachers
-                </a>
-                <a href="?audience=parents" class="list-group-item list-group-item-action {% if selected_audience == 'parents' %}active{% endif %}">
-                    <i class="bi bi-house me-2"></i>Parents
-                </a>
-                <a href="?audience=staff" class="list-group-item list-group-item-action {% if selected_audience == 'staff' %}active{% endif %}">
-                    <i class="bi bi-briefcase me-2"></i>Staff
-                </a>
-            </div>
-        </div>
-
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 fw-bold">
-                <i class="bi bi-info-circle me-2 text-primary"></i>About Announcements
-            </div>
-            <div class="card-body text-muted small">
-                <p>Announcements are official notices visible to specific groups in the school community.</p>
-                <p class="mb-0">You are viewing announcements targeted at your role.</p>
-            </div>
-        </div>
-    </div>
 </div>
-
-{% if user.profile.role == 'admin' or user.profile.role == 'teacher' %}
-<div class="modal fade" id="createAnnouncementModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-megaphone me-2"></i>New Announcement</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{% url 'notifications:create_announcement' %}">
-                {% csrf_token %}
-                <div class="modal-body p-4">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
-                        <input type="text" name="title" class="form-control" placeholder="Announcement title" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Content <span class="text-danger">*</span></label>
-                        <textarea name="content" class="form-control" rows="5" placeholder="Write your announcement here..." required></textarea>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Audience <span class="text-danger">*</span></label>
-                            <select name="audience" class="form-select" required>
-                                <option value="all">Everyone</option>
-                                <option value="students">Students Only</option>
-                                <option value="teachers">Teachers Only</option>
-                                <option value="parents">Parents Only</option>
-                                <option value="staff">Staff Only</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Expiry Date (optional)</label>
-                            <input type="datetime-local" name="expires_at" class="form-control">
-                            <div class="form-text">Leave blank for no expiry</div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="send_email" id="sendEmail">
-                                <label class="form-check-label" for="sendEmail">Send Email Notification</label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" name="send_sms" id="sendSms">
-                                <label class="form-check-label" for="sendSms">Send SMS Notification</label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-send me-2"></i>Post Announcement</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endif %}
 {% endblock %}
