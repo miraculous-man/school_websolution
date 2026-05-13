@@ -5,8 +5,8 @@ app_name = 'homepage'
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('api/verify-student/', views.verify_student_api, name='verify_student_api'),
-    path('home-v2/', views.home_v2, name='home_v2'),
+    path('api/verify-student/', views.verify_student_api, name= 'verifystudent'),
+    path('home_v2/',views.home_v2, name='home_v2'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('gallery/', views.gallery, name='gallery'),

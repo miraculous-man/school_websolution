@@ -244,7 +244,12 @@ def apply(request):
             parent_email=parent_email,
             parent_address=parent_address,
             parent_occupation=parent_occupation,
-            status='Pending'
+            status='Pending',
+            passport_photo=request.FILES.get('passport_photo'),
+            nin_image=request.FILES.get('nin_image'),
+            state_of_origin_cert=request.FILES.get('state_of_origin_cert'),
+            first_school_leaving_cert=request.FILES.get('first_school_leaving_cert'),
+            other_documents=request.FILES.get('other_documents'),
         )
         
         # Notify Admins
@@ -271,7 +276,7 @@ def apply(request):
                 try:
                     from_email = settings.DEFAULT_FROM_EMAIL or settings.EMAIL_HOST_USER
                     send_mail(
-                        subject=f"Admission Alert: {name}",
+                        subject=f"Admission Alert: {first_name} {last_name}",
                         message=f"Hello {admin.get_full_name() or admin.username},\n\n{notification_message}\n\nPlease login to the admin portal to review the application.",
                         from_email=from_email,
                         recipient_list=[admin.email],
