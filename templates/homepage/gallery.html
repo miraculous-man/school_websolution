@@ -25,26 +25,55 @@
         <div class="row g-4">
             {% for image in images %}
             <div class="col-lg-4 col-md-6">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100 shadow-sm border-0 overflow-hidden">
+
                     {% if image.video_url %}
-                    <div class="ratio ratio-16x9">
-                        <iframe src="{{ image.video_url|replace:'watch?v=,embed/' }}" title="{{ image.title }}" allowfullscreen></iframe>
+                    {% with vid_id=image.video_url|youtube_id thumb=image.video_url|youtube_thumbnail embed=image.video_url|youtube_embed %}
+                    <div class="position-relative" style="aspect-ratio:16/9; background:#000; overflow:hidden;">
+                        <img
+                            src="{{ thumb }}"
+                            alt="{{ image.title }}"
+                            style="width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s;"
+                            onmouseover="this.style.transform='scale(1.05)'"
+                            onmouseout="this.style.transform='scale(1)'"
+                            onerror="this.src='https://img.youtube.com/vi/{{ vid_id }}/hqdefault.jpg'">
+
+                        <button type="button"
+                            class="position-absolute top-50 start-50 translate-middle border-0 bg-transparent p-0"
+                            style="cursor:pointer;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#videoModal"
+                            data-embed="{{ embed }}"
+                            data-title="{{ image.title }}"
+                            data-yturl="{{ image.video_url }}"
+                            onclick="openVideoModal(this)">
+                            <div style="width:72px; height:52px; background:rgba(255,0,0,0.92); border-radius:14px; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 16px rgba(0,0,0,0.4); transition:transform 0.2s;"
+                                onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+                                <svg viewBox="0 0 24 24" width="34" height="34" fill="white">
+                                    <polygon points="5,3 19,12 5,21"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <div class="position-absolute bottom-0 start-0 p-2">
+                            <span class="badge bg-danger shadow-sm"><i class="bi bi-youtube me-1"></i>Video</span>
+                        </div>
                     </div>
+                    {% endwith %}
+
                     {% elif image.image %}
-                    <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}" style="height: 250px; object-fit: cover;">
+                    <img src="{{ image.image.url }}" class="card-img-top" alt="{{ image.title }}" style="height:220px; object-fit:cover;">
                     {% endif %}
+
                     <div class="card-body">
-                        <h5 class="card-title">{{ image.title }}</h5>
+                        <h6 class="card-title fw-bold mb-1">{{ image.title }}</h6>
                         {% if image.description %}
-                        <p class="card-text text-muted small">{{ image.description|truncatewords:15 }}</p>
+                        <p class="card-text text-muted small mb-2">{{ image.description|truncatewords:15 }}</p>
                         {% endif %}
-                        <div class="d-flex gap-2 mt-3">
+                        <div class="d-flex gap-2 mt-2">
                             {% if image.video_url %}
                             <a href="{{ image.video_url }}" target="_blank" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-youtube me-1"></i>Play
-                            </a>
-                            <a href="https://ssyoutube.com/en1/{{ image.video_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-download me-1"></i>Download
+                                <i class="bi bi-youtube me-1"></i>YouTube
                             </a>
                             {% elif image.image %}
                             <a href="{{ image.image.url }}" download class="btn btn-sm btn-outline-primary">
@@ -57,7 +86,7 @@
             </div>
             {% empty %}
             <div class="col-12 text-center py-5">
-                <i class="bi bi-images text-muted" style="font-size: 5rem;"></i>
+                <i class="bi bi-images text-muted" style="font-size:5rem;"></i>
                 <h4 class="mt-3">No images yet</h4>
                 <p class="text-muted">Gallery images will appear here once added.</p>
             </div>
@@ -83,4 +112,47 @@
         {% endif %}
     </div>
 </section>
+
+<!-- Single shared video modal -->
+<div class="modal fade" id="videoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-black border-0">
+            <div class="modal-header border-0 pb-0 px-3 pt-3">
+                <h6 class="modal-title text-white" id="videoModalTitle"></h6>
+                <div class="ms-auto d-flex gap-2 align-items-center">
+                    <a id="videoModalYtLink" href="#" target="_blank" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-youtube me-1"></i>Open on YouTube
+                    </a>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <div class="modal-body p-3">
+                <div class="ratio ratio-16x9">
+                    <iframe id="videoModalIframe"
+                        src=""
+                        title="Video player"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openVideoModal(btn) {
+    document.getElementById('videoModalTitle').textContent = btn.getAttribute('data-title') || '';
+    document.getElementById('videoModalYtLink').href = btn.getAttribute('data-yturl') || '#';
+    document.getElementById('videoModalIframe').src = btn.getAttribute('data-embed') || '';
+}
+
+document.getElementById('videoModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('videoModalIframe').src = '';
+});
+</script>
 {% endblock %}

@@ -68,7 +68,7 @@
             </div>
             <div class="modal-body p-4">
                 <div class="row mb-4">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Student Details</h6>
                         <p class="mb-1"><span class="text-muted small">Full Name:</span><br>{{ admission.first_name }} {{ admission.other_name }} {{ admission.last_name }}</p>
                         <p class="mb-1"><span class="text-muted small">Gender:</span><br>{{ admission.get_gender_display }}</p>
@@ -77,13 +77,46 @@
                         <p class="mb-1"><span class="text-muted small">Phone:</span><br>{{ admission.phone }}</p>
                         <p class="mb-1"><span class="text-muted small">Address:</span><br>{{ admission.address }}</p>
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Parent/Guardian Details</h6>
+                    <div class="col-md-4">
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Parent Details</h6>
                         <p class="mb-1"><span class="text-muted small">Parent Name:</span><br>{{ admission.parent_name }}</p>
                         <p class="mb-1"><span class="text-muted small">Occupation:</span><br>{{ admission.parent_occupation }}</p>
                         <p class="mb-1"><span class="text-muted small">Email:</span><br>{{ admission.parent_email }}</p>
                         <p class="mb-1"><span class="text-muted small">Phone:</span><br>{{ admission.parent_phone }}</p>
                         <p class="mb-1"><span class="text-muted small">Address:</span><br>{{ admission.parent_address }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">Documents</h6>
+                        {% if admission.passport_photo %}
+                        <div class="mb-2">
+                            <span class="text-muted small">Passport Photo:</span><br>
+                            <a href="{{ admission.passport_photo.url }}" target="_blank" class="btn btn-sm btn-outline-info p-1">View Image</a>
+                        </div>
+                        {% endif %}
+                        {% if admission.nin_image %}
+                        <div class="mb-2">
+                            <span class="text-muted small">NIN Image:</span><br>
+                            <a href="{{ admission.nin_image.url }}" target="_blank" class="btn btn-sm btn-outline-info p-1">View Image</a>
+                        </div>
+                        {% endif %}
+                        {% if admission.state_of_origin_cert %}
+                        <div class="mb-2">
+                            <span class="text-muted small">Origin Cert:</span><br>
+                            <a href="{{ admission.state_of_origin_cert.url }}" target="_blank" class="btn btn-sm btn-outline-info p-1">View Image</a>
+                        </div>
+                        {% endif %}
+                        {% if admission.first_school_leaving_cert %}
+                        <div class="mb-2">
+                            <span class="text-muted small">FSLC:</span><br>
+                            <a href="{{ admission.first_school_leaving_cert.url }}" target="_blank" class="btn btn-sm btn-outline-info p-1">View Doc</a>
+                        </div>
+                        {% endif %}
+                        {% if admission.other_documents %}
+                        <div class="mb-2">
+                            <span class="text-muted small">Other Docs:</span><br>
+                            <a href="{{ admission.other_documents.url }}" target="_blank" class="btn btn-sm btn-outline-info p-1">Download</a>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="bg-light p-3 rounded">
@@ -111,15 +144,4 @@
     </div>
 </div>
 {% endfor %}
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">No new applications found.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
 {% endblock %}
