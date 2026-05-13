@@ -10,6 +10,11 @@ urlpatterns = [
     path('unread-count/', views.get_unread_count, name='unread_count'),
     path('recent/', views.get_recent_notifications, name='recent'),
     path('announcements/', views.announcement_list, name='announcements'),
+    path('announcements/create/', views.create_announcement, name='create_announcement'),
+    path('announcements/delete/<int:pk>/', views.delete_announcement, name='delete_announcement'),
+    path('push/subscribe/', views.push_subscribe, name='push_subscribe'),
+    path('push/unsubscribe/', views.push_unsubscribe, name='push_unsubscribe'),
+    path('push/public-key/', views.push_public_key, name='push_public_key'),
     path('notification/<int:pk>/', views.notification_detail, name='detail'),
     # Messaging
     path('inbox/', views.inbox, name='inbox'),
